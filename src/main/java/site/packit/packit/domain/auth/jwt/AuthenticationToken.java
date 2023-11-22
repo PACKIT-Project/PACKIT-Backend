@@ -3,10 +3,15 @@ package site.packit.packit.domain.auth.jwt;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import site.packit.packit.domain.auth.exception.AuthException;
 
 import javax.crypto.SecretKey;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.EXPIRED_TOKEN;
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.INVALID_TOKEN;
@@ -56,5 +61,17 @@ public class AuthenticationToken {
 
     public String getValue() {
         return value;
+    }
+
+    public String getSubject() {
+        return getClaims().getSubject();
+    }
+
+    public Collection<GrantedAuthority> getMemberGrantedAuthorities() {
+        String roles = getClaims().get("roles", String.class);
+
+        return Arrays.stream(roles.split(","))
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 }

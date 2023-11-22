@@ -40,13 +40,12 @@ public class CustomUserPrincipal implements UserDetails, OAuth2User, OidcUser {
         this.oAuth2UserInfoAttributes = oAuth2UserInfoAttributes;
     }
 
-    public static CustomUserPrincipal from(Member member, Collection<? extends GrantedAuthority> authorities) {
-        return from(member, authorities, Map.of());
+    public static CustomUserPrincipal from(Member member) {
+        return from(member, Map.of());
     }
 
     public static CustomUserPrincipal from(
             Member member,
-            Collection<? extends GrantedAuthority> authorities,
             Map<String, Object> oAuth2UserInfo
     ) {
         return new CustomUserPrincipal(
@@ -54,7 +53,7 @@ public class CustomUserPrincipal implements UserDetails, OAuth2User, OidcUser {
                 member.getPersonalId(),
                 member.getAccountStatus(),
                 member.getLoginProvider(),
-                authorities,
+                member.getGrantedAuthorities(),
                 oAuth2UserInfo
         );
     }
@@ -128,6 +127,10 @@ public class CustomUserPrincipal implements UserDetails, OAuth2User, OidcUser {
         sb.append("oAuth2UserInfoAttributes=[PROTECTED]");
 
         return sb.toString();
+    }
+
+    public Long getMemberId() {
+        return memberId;
     }
 
     public String getMemberAccountStatus() {

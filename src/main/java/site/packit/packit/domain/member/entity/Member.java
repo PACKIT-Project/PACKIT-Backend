@@ -4,11 +4,18 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import site.packit.packit.domain.auth.exception.AuthException;
 import site.packit.packit.domain.member.constant.AccountRole;
 import site.packit.packit.domain.member.constant.AccountStatus;
 import site.packit.packit.domain.member.constant.LoginProvider;
 import site.packit.packit.global.audit.BaseTimeEntity;
 
+import java.util.Collection;
+import java.util.List;
+
+import static site.packit.packit.domain.auth.exception.AuthErrorCode.LOGIN_PROVIDER_MISMATCH;
 import static site.packit.packit.domain.member.constant.AccountRole.USER;
 import static site.packit.packit.domain.member.constant.AccountStatus.*;
 
@@ -74,5 +81,18 @@ public class Member extends BaseTimeEntity {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
         this.accountStatus = ACTIVE;
+    }
+
+    public Collection<GrantedAuthority> getGrantedAuthorities() {
+        return List.of(new SimpleGrantedAuthority(accountRole.toString()));
+    }
+
+    public boolean validateLoginProvider(LoginProvider loginProvider) {
+        if (this.loginProvider != loginProvider) {
+            String errorMessage = "이미 " + loginProvider.name() + "계정으로 가입되어 있습니다.";
+            throw new AuthException(LOGIN_PROVIDER_MISMATCH, errorMessage);
+        }
+
+        return true;
     }
 }

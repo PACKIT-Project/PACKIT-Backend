@@ -69,7 +69,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         AuthenticationToken accessToken = tokenProvider.convertAccessTokenValueToObject(accessTokenValue);
         accessToken.validate();
 
-        Authentication authentication = authService.convertAccessTokenToAuthentication(accessToken);
+        Authentication authentication = authService.createMemberAuthentication(accessToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

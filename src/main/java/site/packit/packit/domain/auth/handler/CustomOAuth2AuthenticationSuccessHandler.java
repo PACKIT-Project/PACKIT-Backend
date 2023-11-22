@@ -6,22 +6,16 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.web.util.UriComponentsBuilder;
-import site.packit.packit.domain.auth.entity.RefreshToken;
 import site.packit.packit.domain.auth.exception.AuthException;
-import site.packit.packit.domain.auth.jwt.TokenProvider;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.auth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
-import site.packit.packit.domain.auth.repository.RefreshTokenRepository;
-import site.packit.packit.domain.auth.userinfo.OAuth2UserInfo;
-import site.packit.packit.domain.auth.userinfo.OAuth2UserInfoFactory;
+import site.packit.packit.domain.auth.service.TokenService;
 import site.packit.packit.global.util.CookieUtil;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collection;
 import java.util.List;
 
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.INVALID_REDIRECT_URI;
@@ -29,8 +23,7 @@ import static site.packit.packit.domain.auth.exception.AuthErrorCode.INVALID_RED
 @Slf4j
 public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
-    private final TokenProvider tokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenService tokenService;
     private final OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository;
 
     @Value("${app.oauth2.authorized-redirect-uris}")
@@ -42,13 +35,8 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
     @Value("${app.oauth2.cookie-max-age}")
     private Integer cookieMaxAge;
 
-    public CustomOAuth2AuthenticationSuccessHandler(
-            TokenProvider tokenProvider,
-            RefreshTokenRepository refreshTokenRepository,
-            OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository
-    ) {
-        this.tokenProvider = tokenProvider;
-        this.refreshTokenRepository = refreshTokenRepository;
+    public CustomOAuth2AuthenticationSuccessHandler(TokenService tokenService, OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository) {
+        this.tokenService = tokenService;
         this.oAuth2AuthorizationRequestBasedOnCookieRepository = oAuth2AuthorizationRequestBasedOnCookieRepository;
     }
 
@@ -78,8 +66,8 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
     ) {
         String redirectUrl = parseRedirectUrl(request);
         CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-        String accessToken = createAccessToken(userPrincipal);
-        String refreshToken = createRefreshToken(userPrincipal);
+        String accessToken = tokenService.createAccessToken(userPrincipal);
+        String refreshToken = tokenService.createRefreshToken(userPrincipal);
         log.info("[created-access-token] : " + accessToken);
 
         setCookie(request, response, refreshToken);
@@ -110,23 +98,6 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
         if (!isValidate) {
             throw new AuthException(INVALID_REDIRECT_URI);
         }
-    }
-
-    private String createAccessToken(CustomUserPrincipal userPrincipal) {
-        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuthUserInfo(userPrincipal.getLoginProvider(), userPrincipal.getAttributes());
-        Collection<? extends GrantedAuthority> authorities = userPrincipal.getAuthorities();
-
-        return tokenProvider.createAccessToken(oAuth2UserInfo.getOpenId(), authorities).getValue();
-    }
-
-    private String createRefreshToken(CustomUserPrincipal userPrincipal) {
-        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuthUserInfo(userPrincipal.getLoginProvider(), userPrincipal.getAttributes());
-        Collection<? extends GrantedAuthority> authorities = userPrincipal.getAuthorities();
-        String refreshToken = tokenProvider.createRefreshToken(oAuth2UserInfo.getOpenId(), authorities).getValue();
-
-        refreshTokenRepository.saveAndFlush(RefreshToken.of(refreshToken, oAuth2UserInfo.getOpenId()));
-
-        return refreshToken;
     }
 
     private void setCookie(

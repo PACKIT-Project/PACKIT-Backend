@@ -4,19 +4,16 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import site.packit.packit.domain.auth.handler.CustomOAuth2AuthenticationFailureHandler;
 import site.packit.packit.domain.auth.handler.CustomOAuth2AuthenticationSuccessHandler;
-import site.packit.packit.domain.auth.jwt.TokenProvider;
 import site.packit.packit.domain.auth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
-import site.packit.packit.domain.auth.repository.RefreshTokenRepository;
+import site.packit.packit.domain.auth.service.TokenService;
 
 @Configuration
 public class OAuth2Config {
 
-    private final TokenProvider tokenProvider;
-    private final RefreshTokenRepository refreshTokenRepository;
+    private final TokenService tokenService;
 
-    public OAuth2Config(TokenProvider tokenProvider, RefreshTokenRepository refreshTokenRepository) {
-        this.tokenProvider = tokenProvider;
-        this.refreshTokenRepository = refreshTokenRepository;
+    public OAuth2Config(TokenService tokenService) {
+        this.tokenService = tokenService;
     }
 
     @Bean
@@ -27,8 +24,7 @@ public class OAuth2Config {
     @Bean
     public CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler() {
         return new CustomOAuth2AuthenticationSuccessHandler(
-                tokenProvider,
-                refreshTokenRepository,
+                tokenService,
                 oAuth2AuthorizationRequestBasedOnCookieRepository()
         );
     }
