@@ -26,6 +26,11 @@ public class MemberService {
     public Member findActiveMemberHasLoginProviderOrTempMember(String personalId, LoginProvider loginProvider) {
         return memberRepository.findByPersonalIdAndAccountStatus(personalId, ACTIVE)
                 .filter(findMember -> findMember.validateLoginProvider(loginProvider))
+                .orElseGet(() -> getTempMember(personalId, loginProvider));
+    }
+
+    private Member getTempMember(String personalId, LoginProvider loginProvider) {
+        return memberRepository.findByPersonalIdAndAccountStatus(personalId, WAITING_TO_JOIN)
                 .orElseGet(() -> memberRepository.save(Member.createTempUser(personalId, loginProvider)));
     }
 

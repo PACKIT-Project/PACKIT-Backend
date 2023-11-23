@@ -11,8 +11,6 @@ import site.packit.packit.domain.auth.jwt.AuthenticationToken;
 import site.packit.packit.domain.auth.jwt.TokenProvider;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.auth.repository.RefreshTokenRepository;
-import site.packit.packit.domain.auth.userinfo.OAuth2UserInfo;
-import site.packit.packit.domain.auth.userinfo.OAuth2UserInfoFactory;
 import site.packit.packit.global.util.HeaderUtil;
 
 import java.util.Collection;
@@ -33,18 +31,18 @@ public class TokenService {
     }
 
     public String createAccessToken(CustomUserPrincipal userPrincipal) {
-        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuthUserInfo(userPrincipal.getLoginProvider(), userPrincipal.getAttributes());
+        String memberPersonalId = userPrincipal.getUsername();
         Collection<? extends GrantedAuthority> authorities = userPrincipal.getAuthorities();
 
-        return tokenProvider.createAccessToken(oAuth2UserInfo.getOpenId(), authorities).getValue();
+        return tokenProvider.createAccessToken(memberPersonalId, authorities).getValue();
     }
 
     public String createRefreshToken(CustomUserPrincipal userPrincipal) {
-        OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuthUserInfo(userPrincipal.getLoginProvider(), userPrincipal.getAttributes());
+        String memberPersonalId = userPrincipal.getUsername();
         Collection<? extends GrantedAuthority> authorities = userPrincipal.getAuthorities();
-        String refreshToken = tokenProvider.createRefreshToken(oAuth2UserInfo.getOpenId(), authorities).getValue();
+        String refreshToken = tokenProvider.createRefreshToken(memberPersonalId, authorities).getValue();
 
-        refreshTokenRepository.saveAndFlush(RefreshToken.of(refreshToken, oAuth2UserInfo.getOpenId()));
+        refreshTokenRepository.saveAndFlush(RefreshToken.of(refreshToken, userPrincipal.getUsername()));
 
         return refreshToken;
     }
