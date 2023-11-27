@@ -30,8 +30,10 @@ public class AuthService {
         this.memberService = memberService;
     }
 
-    public Authentication createMemberAuthentication(AuthenticationToken accessToken) {
+    public Authentication createMemberAuthentication(String accessTokenValue) {
+        AuthenticationToken accessToken = tokenService.getAuthenticationToken(accessTokenValue);
         accessToken.validate();
+
         UserDetails userDetails = createUserDetails(accessToken);
 
         return new UsernamePasswordAuthenticationToken(userDetails, accessToken, userDetails.getAuthorities());

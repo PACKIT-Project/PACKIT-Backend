@@ -133,8 +133,8 @@ public class CustomUserPrincipal implements UserDetails, OAuth2User, OidcUser {
         return memberId;
     }
 
-    public String getMemberAccountStatus() {
-        return memberAccountStatus.name();
+    public AccountStatus getMemberAccountStatus() {
+        return memberAccountStatus;
     }
 
     public LoginProvider getLoginProvider() {

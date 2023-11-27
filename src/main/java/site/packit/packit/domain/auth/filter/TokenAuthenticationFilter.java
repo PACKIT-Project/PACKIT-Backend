@@ -8,24 +8,29 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import site.packit.packit.domain.auth.exception.AuthException;
-import site.packit.packit.domain.auth.jwt.AuthenticationToken;
-import site.packit.packit.domain.auth.jwt.TokenProvider;
+import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.auth.service.AuthService;
+import site.packit.packit.domain.member.constant.AccountStatus;
+import site.packit.packit.domain.member.exception.MemberException;
+import site.packit.packit.global.exception.ErrorCode;
 import site.packit.packit.global.util.HeaderUtil;
 
 import java.io.IOException;
 
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.REQUEST_TOKEN_NOT_FOUND;
+import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
+import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
+import static site.packit.packit.domain.member.exception.MemberErrorCode.DELETE_MEMBER;
+import static site.packit.packit.domain.member.exception.MemberErrorCode.NOT_ACTIVE_MEMBER;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_REISSUE_REQUEST_URI = "/api/auth/refresh";
+    private static final String REGISTER_REQUEST_URI = "/api/auth/register";
 
-    private final TokenProvider tokenProvider;
     private final AuthService authService;
 
-    public TokenAuthenticationFilter(TokenProvider tokenProvider, AuthService authService) {
-        this.tokenProvider = tokenProvider;
+    public TokenAuthenticationFilter(AuthService authService) {
         this.authService = authService;
     }
 
@@ -51,7 +56,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            setAuthentication(accessTokenValue);
+            Authentication authentication = configAuthentication(accessTokenValue);
+            CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
+
+            checkMemberAccountStatus(request, principal.getMemberAccountStatus());
         } catch (AuthException exception) {
             request.setAttribute("exceptionCode", exception.getErrorCode());
         }
@@ -65,11 +73,26 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         return TOKEN_REISSUE_REQUEST_URI.equals(requestURI);
     }
 
-    private void setAuthentication(String accessTokenValue) {
-        AuthenticationToken accessToken = tokenProvider.convertAccessTokenValueToObject(accessTokenValue);
-        accessToken.validate();
-
-        Authentication authentication = authService.createMemberAuthentication(accessToken);
+    private Authentication configAuthentication(String accessTokenValue) {
+        Authentication authentication = authService.createMemberAuthentication(accessTokenValue);
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        return authentication;
+    }
+
+    private void checkMemberAccountStatus(HttpServletRequest request, AccountStatus accountStatus) {
+        if (!isRegisterRequest(request, accountStatus) && accountStatus != ACTIVE) {
+            throw new MemberException(getMemberStatusErrorCode(accountStatus));
+        }
+    }
+
+    private boolean isRegisterRequest(HttpServletRequest request, AccountStatus accountStatus) {
+        String requestURI = request.getRequestURI();
+
+        return REGISTER_REQUEST_URI.equals(requestURI) && accountStatus == WAITING_TO_JOIN;
+    }
+
+    private ErrorCode getMemberStatusErrorCode(AccountStatus accountStatus) {
+        return (accountStatus == WAITING_TO_JOIN) ? NOT_ACTIVE_MEMBER : DELETE_MEMBER;
     }
 }

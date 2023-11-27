@@ -16,9 +16,9 @@ import site.packit.packit.domain.auth.filter.TokenAuthenticationFilter;
 import site.packit.packit.domain.auth.handler.CustomOAuth2AuthenticationFailureHandler;
 import site.packit.packit.domain.auth.handler.CustomOAuth2AuthenticationSuccessHandler;
 import site.packit.packit.domain.auth.handler.TokenAccessDeniedHandler;
-import site.packit.packit.domain.auth.jwt.TokenProvider;
 import site.packit.packit.domain.auth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
 import site.packit.packit.domain.auth.service.AuthService;
+import site.packit.packit.domain.auth.service.TokenService;
 
 import java.util.List;
 
@@ -34,27 +34,18 @@ public class SecurityConfig {
             PermitAllPattern.of("/api/auth/login", POST)
     );
 
-    private final TokenProvider tokenProvider;
+    private final TokenService tokenService;
     private final AuthService authService;
     private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
-    private final OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository;
-    private final CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler;
-    private final CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler;
 
     public SecurityConfig(
-            TokenProvider tokenProvider,
+            TokenService tokenService,
             AuthService authService,
-            OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService,
-            OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository,
-            CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler,
-            CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler
+            OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService
     ) {
-        this.tokenProvider = tokenProvider;
+        this.tokenService = tokenService;
         this.authService = authService;
         this.oAuth2UserService = oAuth2UserService;
-        this.oAuth2AuthorizationRequestBasedOnCookieRepository = oAuth2AuthorizationRequestBasedOnCookieRepository;
-        this.customOAuth2AuthenticationSuccessHandler = customOAuth2AuthenticationSuccessHandler;
-        this.customOAuth2AuthenticationFailureHandler = customOAuth2AuthenticationFailureHandler;
     }
 
     @Bean
@@ -75,7 +66,7 @@ public class SecurityConfig {
                 .oauth2Login(login -> login
                         .authorizationEndpoint(endPoint -> endPoint
                                 .baseUri("/api/oauth2/authorization")
-                                .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository)
+                                .authorizationRequestRepository(oAuth2AuthorizationRequestBasedOnCookieRepository())
                         )
                         .redirectionEndpoint(endPoint -> endPoint
                                 .baseUri("/*/oauth2/code/*")
@@ -83,8 +74,8 @@ public class SecurityConfig {
                         .userInfoEndpoint(endPoint -> endPoint
                                 .userService(oAuth2UserService)
                         )
-                        .successHandler(customOAuth2AuthenticationSuccessHandler)
-                        .failureHandler(customOAuth2AuthenticationFailureHandler)
+                        .successHandler(customOAuth2AuthenticationSuccessHandler())
+                        .failureHandler(customOAuth2AuthenticationFailureHandler())
                 );
         http
                 .authorizeHttpRequests(request -> request
@@ -105,12 +96,29 @@ public class SecurityConfig {
     }
 
     private TokenAuthenticationFilter tokenAuthenticationFilter() {
-        return new TokenAuthenticationFilter(tokenProvider, authService);
+        return new TokenAuthenticationFilter(authService);
     }
 
     private AntPathRequestMatcher[] parseRequestMatchers() {
         return PERMIT_ALL_PATTERNS.stream()
                 .map(PermitAllPattern::convertAntPathRequestMatcher)
                 .toArray(AntPathRequestMatcher[]::new);
+    }
+
+    public OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository() {
+        return new OAuth2AuthorizationRequestBasedOnCookieRepository();
+    }
+
+    public CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler() {
+        return new CustomOAuth2AuthenticationSuccessHandler(
+                tokenService,
+                oAuth2AuthorizationRequestBasedOnCookieRepository()
+        );
+    }
+
+    public CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler() {
+        return new CustomOAuth2AuthenticationFailureHandler(
+                oAuth2AuthorizationRequestBasedOnCookieRepository()
+        );
     }
 }

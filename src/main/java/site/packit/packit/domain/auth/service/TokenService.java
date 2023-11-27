@@ -96,4 +96,8 @@ public class TokenService {
     private AuthenticationToken parseAccessTokenFromRequest(HttpServletRequest request) {
         return tokenProvider.convertAccessTokenValueToObject(HeaderUtil.getAccessToken(request));
     }
+
+    public AuthenticationToken getAuthenticationToken(String accessTokenValue) {
+        return tokenProvider.convertAccessTokenValueToObject(accessTokenValue);
+    }
 }
