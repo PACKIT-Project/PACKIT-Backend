@@ -21,16 +21,16 @@ public enum ImageErrorCode implements ErrorCode {
 
     @Override
     public String getCode() {
-        return null;
+        return code;
     }
 
     @Override
     public HttpStatus getHttpStatus() {
-        return null;
+        return httpStatus;
     }
 
     @Override
     public String getMessage() {
-        return null;
+        return message;
     }
 }
