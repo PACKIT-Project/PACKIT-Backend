@@ -53,4 +53,13 @@ public class MemberController {
 
         return ResponseUtil.successApiResponse(OK, "성공적으로 사용자 프로필이 업데이트되었습니다.");
     }
+
+    @DeleteMapping()
+    public ResponseEntity<SuccessApiResponse> deleteMember(
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ) {
+        memberService.deleteMember(principal.getMemberId());
+
+        return ResponseUtil.successApiResponse(OK, "성공적으로 사용자 정보가 삭제되었습니다.");
+    }
 }

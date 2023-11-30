@@ -99,4 +99,8 @@ public class Member extends BaseTimeEntity {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
     }
+
+    public void remove() {
+        this.accountStatus = DELETE;
+    }
 }

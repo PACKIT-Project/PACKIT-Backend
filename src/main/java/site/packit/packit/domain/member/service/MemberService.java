@@ -62,4 +62,10 @@ public class MemberService {
                 .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
         member.updateMemberProfile(request.nickname(), request.profileImageUrl());
     }
+
+    public void deleteMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+        member.remove();
+    }
 }
