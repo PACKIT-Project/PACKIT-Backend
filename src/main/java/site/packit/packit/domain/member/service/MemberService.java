@@ -3,6 +3,7 @@ package site.packit.packit.domain.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.packit.packit.domain.member.constant.LoginProvider;
+import site.packit.packit.domain.member.dto.business.MemberDto;
 import site.packit.packit.domain.member.dto.request.RegisterRequest;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.exception.MemberException;
@@ -46,5 +47,13 @@ public class MemberService {
     public Member getMember(String personalId) {
         return memberRepository.findByPersonalId(personalId)
                 .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+    }
+
+    @Transactional(readOnly = true)
+    public MemberDto getMember(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+
+        return MemberDto.of(member);
     }
 }
