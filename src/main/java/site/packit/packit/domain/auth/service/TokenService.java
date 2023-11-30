@@ -42,6 +42,7 @@ public class TokenService {
         Collection<? extends GrantedAuthority> authorities = userPrincipal.getAuthorities();
         String refreshToken = tokenProvider.createRefreshToken(memberPersonalId, authorities).getValue();
 
+        refreshTokenRepository.deleteAllByMemberPersonalId(memberPersonalId);
         refreshTokenRepository.saveAndFlush(RefreshToken.of(refreshToken, userPrincipal.getUsername()));
 
         return refreshToken;
