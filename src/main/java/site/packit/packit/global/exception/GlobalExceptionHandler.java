@@ -22,6 +22,17 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler
+    protected ResponseEntity<ErrorApiResponse> handleResourceNotFoundException(
+            ResourceNotFoundException e
+    ) {
+        log.error("[handle ResourceNotFoundException] - {}", e.getMessage());
+        return new ResponseEntity<>(
+                ErrorApiResponse.of(e.getErrorCode()),
+                e.getErrorCode().getHttpStatus()
+        );
+    }
+
+    @ExceptionHandler
     protected ResponseEntity<ErrorApiResponse> handleException(Exception exception) {
         log.error("[handle Exception] - {}", exception.getMessage());
 
