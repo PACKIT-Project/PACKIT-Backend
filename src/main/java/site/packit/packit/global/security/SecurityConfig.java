@@ -105,10 +105,12 @@ public class SecurityConfig {
                 .toArray(AntPathRequestMatcher[]::new);
     }
 
+    @Bean
     public OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository() {
         return new OAuth2AuthorizationRequestBasedOnCookieRepository();
     }
 
+    @Bean
     public CustomOAuth2AuthenticationSuccessHandler customOAuth2AuthenticationSuccessHandler() {
         return new CustomOAuth2AuthenticationSuccessHandler(
                 tokenService,
@@ -116,6 +118,7 @@ public class SecurityConfig {
         );
     }
 
+    @Bean
     public CustomOAuth2AuthenticationFailureHandler customOAuth2AuthenticationFailureHandler() {
         return new CustomOAuth2AuthenticationFailureHandler(
                 oAuth2AuthorizationRequestBasedOnCookieRepository()
