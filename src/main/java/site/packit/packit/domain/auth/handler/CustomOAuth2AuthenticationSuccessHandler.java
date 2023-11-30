@@ -72,7 +72,7 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
 
         setCookie(request, response, refreshToken);
 
-        return createTargetUri(redirectUrl, accessToken, userPrincipal.getMemberAccountStatus());
+        return createTargetUri(redirectUrl, accessToken, userPrincipal.getMemberAccountStatus().name());
     }
 
     private String parseRedirectUrl(HttpServletRequest request) {
