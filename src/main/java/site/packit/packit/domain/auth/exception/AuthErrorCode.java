@@ -34,6 +34,8 @@ public enum AuthErrorCode implements ErrorCode {
      * 9000 ~ 9999
      */
     AUTHENTICATION_ERROR("AT-C-9000", UNAUTHORIZED, "Authentication exception."),
+    NOT_ACTIVE_MEMBER("AT-C-9001", BAD_REQUEST, "활성화 된 회원이 아닙니다."),
+    DELETE_MEMBER("AT-C-9002", NOT_FOUND, "탈퇴한 회원입니다."),
     INTERNAL_AUTHENTICATION_SERVICE_EXCEPTION("AT-S-9000", INTERNAL_SERVER_ERROR, "Internal authentication service exception.");
 
     private final String code;
