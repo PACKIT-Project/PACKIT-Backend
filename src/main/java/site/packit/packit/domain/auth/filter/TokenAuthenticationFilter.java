@@ -23,7 +23,7 @@ import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_REISSUE_REQUEST_URI = "/api/auth/refresh";
-    private static final String REGISTER_REQUEST_URI = "/api/auth/register";
+    private static final String REGISTER_REQUEST_URI = "/api/members";
 
     private final AuthService authService;
 
