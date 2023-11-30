@@ -5,6 +5,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import site.packit.packit.domain.auth.exception.AuthErrorCode;
 import site.packit.packit.domain.auth.exception.AuthException;
 
 import javax.crypto.SecretKey;
@@ -54,8 +55,8 @@ public class AuthenticationToken {
         try {
             parseTokenClaims();
             return false;
-        } catch (ExpiredJwtException exception) {
-            return true;
+        } catch (AuthException exception) {
+            return exception.getErrorCode() == EXPIRED_TOKEN;
         }
     }
 

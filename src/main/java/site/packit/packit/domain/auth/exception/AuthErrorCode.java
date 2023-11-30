@@ -17,7 +17,8 @@ public enum AuthErrorCode implements ErrorCode {
     EXPIRED_TOKEN("AT-C-0002", UNAUTHORIZED, "만료된 토큰입니다."),
     NOT_EXPIRED_TOKEN("AT-C-0003", BAD_REQUEST, "만료되지 않은 토큰입니다."),
     REQUEST_TOKEN_NOT_FOUND("AT-C-0004", BAD_REQUEST, "요청에 토큰이 존재하지 않습니다."),
-    UNTRUSTED_CREDENTIAL("AT-C-0005", UNAUTHORIZED, "신뢰할 수 없는 자격증명 입니다."),
+    REQUEST_REFRESH_TOKEN_NOT_FOUND("AT-C-0005", BAD_REQUEST, "요청에 리프레쉬 토큰이 존재하지 않습니다."),
+    UNTRUSTED_CREDENTIAL("AT-C-0006", UNAUTHORIZED, "신뢰할 수 없는 자격증명 입니다."),
 
     /**
      * OAuth2
