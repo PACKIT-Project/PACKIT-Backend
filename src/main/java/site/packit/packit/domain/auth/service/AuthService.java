@@ -2,7 +2,6 @@ package site.packit.packit.domain.auth.service;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,16 +13,12 @@ import site.packit.packit.domain.auth.jwt.AuthenticationToken;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.service.MemberService;
-import site.packit.packit.global.util.CookieUtil;
 
 @Service
 public class AuthService {
 
     private final TokenService tokenService;
     private final MemberService memberService;
-
-    @Value("${app.cookie.refresh-token-cookie-name}")
-    private String refreshTokenCookieName;
 
     public AuthService(TokenService tokenService, MemberService memberService) {
         this.tokenService = tokenService;
@@ -57,7 +52,6 @@ public class AuthService {
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) {
-        tokenService.deleteAllRefreshToken(request);
-        CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
+        tokenService.deleteAllRefreshToken(request, response);
     }
 }
