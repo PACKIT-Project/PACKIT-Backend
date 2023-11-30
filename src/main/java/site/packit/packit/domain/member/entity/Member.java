@@ -78,8 +78,7 @@ public class Member extends BaseTimeEntity {
     }
 
     public void register(String nickname, String profileImageUrl) {
-        this.nickname = nickname;
-        this.profileImageUrl = profileImageUrl;
+        updateMemberProfile(nickname, profileImageUrl);
         this.accountStatus = ACTIVE;
     }
 
@@ -94,5 +93,14 @@ public class Member extends BaseTimeEntity {
         }
 
         return true;
+    }
+
+    public void updateMemberProfile(String nickname, String profileImageUrl) {
+        this.nickname = nickname;
+        this.profileImageUrl = profileImageUrl;
+    }
+
+    public void remove() {
+        this.accountStatus = DELETE;
     }
 }

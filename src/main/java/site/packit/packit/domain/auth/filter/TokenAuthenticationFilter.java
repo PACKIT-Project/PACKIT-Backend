@@ -11,22 +11,19 @@ import site.packit.packit.domain.auth.exception.AuthException;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.auth.service.AuthService;
 import site.packit.packit.domain.member.constant.AccountStatus;
-import site.packit.packit.domain.member.exception.MemberException;
 import site.packit.packit.global.exception.ErrorCode;
 import site.packit.packit.global.util.HeaderUtil;
 
 import java.io.IOException;
 
-import static site.packit.packit.domain.auth.exception.AuthErrorCode.REQUEST_TOKEN_NOT_FOUND;
+import static site.packit.packit.domain.auth.exception.AuthErrorCode.*;
 import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
 import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
-import static site.packit.packit.domain.member.exception.MemberErrorCode.DELETE_MEMBER;
-import static site.packit.packit.domain.member.exception.MemberErrorCode.NOT_ACTIVE_MEMBER;
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_REISSUE_REQUEST_URI = "/api/auth/refresh";
-    private static final String REGISTER_REQUEST_URI = "/api/auth/register";
+    private static final String REGISTER_REQUEST_URI = "/api/members";
 
     private final AuthService authService;
 
@@ -58,10 +55,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
         try {
             Authentication authentication = configAuthentication(accessTokenValue);
             CustomUserPrincipal principal = (CustomUserPrincipal) authentication.getPrincipal();
-
             checkMemberAccountStatus(request, principal.getMemberAccountStatus());
         } catch (AuthException exception) {
             request.setAttribute("exceptionCode", exception.getErrorCode());
+            throw new AuthException(exception.getErrorCode());
         }
 
         filterChain.doFilter(request, response);
@@ -82,7 +79,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private void checkMemberAccountStatus(HttpServletRequest request, AccountStatus accountStatus) {
         if (!isRegisterRequest(request, accountStatus) && accountStatus != ACTIVE) {
-            throw new MemberException(getMemberStatusErrorCode(accountStatus));
+            throw new AuthException(getMemberStatusErrorCode(accountStatus));
         }
     }
 
