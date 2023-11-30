@@ -5,11 +5,12 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.member.dto.business.MemberDto;
-import site.packit.packit.domain.member.dto.request.RegisterRequest;
+import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.member.dto.response.GetMemberProfileResponse;
 import site.packit.packit.domain.member.dto.response.RegisterResponse;
 import site.packit.packit.domain.member.service.MemberService;
 import site.packit.packit.global.response.success.SingleSuccessApiResponse;
+import site.packit.packit.global.response.success.SuccessApiResponse;
 import site.packit.packit.global.response.util.ResponseUtil;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -28,7 +29,7 @@ public class MemberController {
     @PostMapping
     public ResponseEntity<SingleSuccessApiResponse<RegisterResponse>> register(
             @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
-            @RequestBody RegisterRequest request
+            @RequestBody UpdateMemberProfileRequest request
     ) {
         Long registerMemberId = memberService.register(userPrincipal.getUsername(), request);
 
@@ -41,5 +42,15 @@ public class MemberController {
         GetMemberProfileResponse memberProfile = GetMemberProfileResponse.of(memberDto);
 
         return ResponseUtil.successApiResponse(OK, "성공적으로 사용자 프로필 정보가 조회되었습니다.", memberProfile);
+    }
+
+    @PutMapping("/profiles")
+    public ResponseEntity<SuccessApiResponse> updateMemberProfile(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @RequestBody UpdateMemberProfileRequest request
+    ) {
+        memberService.updateMemberProfile(principal.getMemberId(), request);
+
+        return ResponseUtil.successApiResponse(OK, "성공적으로 사용자 프로필이 업데이트되었습니다.");
     }
 }
