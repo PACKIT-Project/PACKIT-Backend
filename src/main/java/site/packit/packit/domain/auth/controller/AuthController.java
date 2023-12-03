@@ -1,4 +1,4 @@
-package site.packit.packit.domain.auth;
+package site.packit.packit.domain.auth.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -42,7 +42,7 @@ public class AuthController {
         return ResponseUtil.successApiResponse(OK, "성공적으로 로그아웃 되었습니다.");
     }
 
-    @PutMapping("/refresh")
+    @PostMapping("/refresh")
     public ResponseEntity<SingleSuccessApiResponse<TokenReissueResponse>> reIssueToken(HttpServletRequest request, HttpServletResponse response) {
         TokenReissueResponse tokenReissueResponse = TokenReissueResponse.of(tokenService.reissueToken(request, response));
 

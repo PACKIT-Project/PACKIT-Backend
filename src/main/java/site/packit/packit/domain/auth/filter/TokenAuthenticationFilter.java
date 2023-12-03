@@ -15,6 +15,7 @@ import site.packit.packit.global.exception.ErrorCode;
 import site.packit.packit.global.util.HeaderUtil;
 
 import java.io.IOException;
+import java.util.List;
 
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.*;
 import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
@@ -23,7 +24,7 @@ import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String TOKEN_REISSUE_REQUEST_URI = "/api/auth/refresh";
-    private static final String REGISTER_REQUEST_URI = "/api/members";
+    private static final List<String> REGISTER_REQUEST_URI = List.of("/api/members", "/api/images");
 
     private final AuthService authService;
 
@@ -86,7 +87,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private boolean isRegisterRequest(HttpServletRequest request, AccountStatus accountStatus) {
         String requestURI = request.getRequestURI();
 
-        return REGISTER_REQUEST_URI.equals(requestURI) && accountStatus == WAITING_TO_JOIN;
+        return REGISTER_REQUEST_URI.contains(requestURI) && accountStatus == WAITING_TO_JOIN;
     }
 
     private ErrorCode getMemberStatusErrorCode(AccountStatus accountStatus) {
