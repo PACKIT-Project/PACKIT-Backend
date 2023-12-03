@@ -28,7 +28,7 @@ import static org.springframework.http.HttpMethod.*;
 public class SecurityConfig {
 
     private static final List<PermitAllPattern> PERMIT_ALL_PATTERNS = List.of(
-            PermitAllPattern.of("/api/auth/refresh", PUT),
+            PermitAllPattern.of("/api/auth/refresh", POST),
             PermitAllPattern.of("/api/check", GET),
             PermitAllPattern.of("/api/auth/login", POST)
     );
