@@ -30,7 +30,8 @@ public class SecurityConfig {
     private static final List<PermitAllPattern> PERMIT_ALL_PATTERNS = List.of(
             PermitAllPattern.of("/api/auth/refresh", POST),
             PermitAllPattern.of("/api/check", GET),
-            PermitAllPattern.of("/api/auth/login", POST)
+            PermitAllPattern.of("/api/auth/login", POST),
+            PermitAllPattern.of("/api/members", POST)
     );
 
     private final TokenService tokenService;
