@@ -7,12 +7,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
-import org.springframework.web.util.UriComponentsBuilder;
 import site.packit.packit.domain.auth.exception.AuthException;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.auth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
 import site.packit.packit.domain.auth.service.TokenService;
 import site.packit.packit.global.util.CookieUtil;
+import site.packit.packit.global.util.RedirectUriUtil;
 
 import java.io.IOException;
 import java.net.URI;
@@ -72,7 +72,7 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
 
         setCookie(request, response, refreshToken);
 
-        return createTargetUri(redirectUrl, accessToken, userPrincipal.getMemberAccountStatus().name());
+        return RedirectUriUtil.createRedirectUri(redirectUrl, accessToken, userPrincipal);
     }
 
     private String parseRedirectUrl(HttpServletRequest request) {
@@ -107,18 +107,6 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
     ) {
         CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
         CookieUtil.addCookie(response, refreshTokenCookieName, refreshToken, cookieMaxAge);
-    }
-
-    private String createTargetUri(
-            String redirectUrl,
-            String accessToken,
-            String memberStatus
-    ) {
-        return UriComponentsBuilder.fromUriString(redirectUrl)
-                .queryParam("access-token", accessToken)
-                .queryParam("member-status", memberStatus)
-                .build()
-                .toUriString();
     }
 
     private void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {

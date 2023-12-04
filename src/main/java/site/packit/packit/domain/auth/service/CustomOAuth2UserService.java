@@ -36,7 +36,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     private OAuth2User process(OAuth2UserRequest userRequest, OAuth2User oAuth2User) {
         LoginProvider loginProvider = parseLoginProvider(userRequest);
         OAuth2UserInfo oAuth2UserInfo = OAuth2UserInfoFactory.getOAuthUserInfo(loginProvider, oAuth2User.getAttributes());
-        Member member = memberService.findActiveMemberHasLoginProviderOrTempMember(oAuth2UserInfo.getOpenId(), loginProvider);
+        Member member = memberService.findMemberByPersonalIdOrCreateMember(oAuth2UserInfo.getOpenId(), loginProvider);
 
         return CustomUserPrincipal.from(member, oAuth2User.getAttributes());
     }

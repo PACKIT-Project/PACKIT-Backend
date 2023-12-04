@@ -9,7 +9,6 @@ import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.exception.MemberException;
 import site.packit.packit.domain.member.repository.MemberRepository;
 
-import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
 import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
 import static site.packit.packit.domain.member.exception.MemberErrorCode.MEMBER_NOT_FOUND;
 import static site.packit.packit.domain.member.exception.MemberErrorCode.TEMP_MEMBER_NOT_FOUND;
@@ -24,15 +23,13 @@ public class MemberService {
         this.memberRepository = memberRepository;
     }
 
-    public Member findActiveMemberHasLoginProviderOrTempMember(String personalId, LoginProvider loginProvider) {
-        return memberRepository.findByPersonalIdAndAccountStatus(personalId, ACTIVE)
-                .filter(findMember -> findMember.validateLoginProvider(loginProvider))
-                .orElseGet(() -> getTempMember(personalId, loginProvider));
+    public Member findMemberByPersonalIdOrCreateMember(String personalId, LoginProvider loginProvider) {
+        return memberRepository.findByPersonalId(personalId)
+                .orElseGet(() -> createTempMember(personalId, loginProvider));
     }
 
-    private Member getTempMember(String personalId, LoginProvider loginProvider) {
-        return memberRepository.findByPersonalIdAndAccountStatus(personalId, WAITING_TO_JOIN)
-                .orElseGet(() -> memberRepository.save(Member.createTempUser(personalId, loginProvider)));
+    private Member createTempMember(String personalId, LoginProvider loginProvider) {
+        return memberRepository.save(Member.createTempUser(personalId, loginProvider));
     }
 
     public Long register(String personalId, UpdateMemberProfileRequest request) {

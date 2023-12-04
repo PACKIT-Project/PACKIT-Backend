@@ -42,7 +42,7 @@ public class AuthService {
 
     @Transactional
     public LoginResponse login(LoginRequest request) {
-        Member member = memberService.findActiveMemberHasLoginProviderOrTempMember(request.memberPersonalId(), request.getLoginProvider());
+        Member member = memberService.findMemberByPersonalIdOrCreateMember(request.memberPersonalId(), request.getLoginProvider());
         CustomUserPrincipal userPrincipal = CustomUserPrincipal.from(member);
 
         String accessToken = tokenService.createAccessToken(userPrincipal);
