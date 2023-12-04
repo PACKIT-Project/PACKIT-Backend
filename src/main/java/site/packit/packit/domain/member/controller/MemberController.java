@@ -27,11 +27,8 @@ public class MemberController {
     }
 
     @PostMapping
-    public ResponseEntity<SingleSuccessApiResponse<RegisterResponse>> register(
-            @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
-            @RequestBody UpdateMemberProfileRequest request
-    ) {
-        Long registerMemberId = memberService.register(userPrincipal.getUsername(), request);
+    public ResponseEntity<SingleSuccessApiResponse<RegisterResponse>> register(@RequestParam("member-personal-id") String memberPersonalId, @RequestBody UpdateMemberProfileRequest request) {
+        Long registerMemberId = memberService.register(memberPersonalId, request);
 
         return successApiResponse(OK, "성공적으로 회원가입되었습니다.", RegisterResponse.of(registerMemberId));
     }
