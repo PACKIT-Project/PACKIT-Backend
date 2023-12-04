@@ -56,7 +56,7 @@ public class AmazonS3ImageService implements ImageService {
     }
 
     private String parseImageExtension(String originalImageName) {
-        return originalImageName.substring(originalImageName.lastIndexOf(".") + 1);
+        return originalImageName.substring(originalImageName.lastIndexOf(".") + 1).toLowerCase();
     }
 
     private String generateStoredImageNameFromOriginalImageName(String originalImageName) {
