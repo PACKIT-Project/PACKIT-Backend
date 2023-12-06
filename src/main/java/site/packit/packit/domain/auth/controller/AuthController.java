@@ -48,7 +48,7 @@ public class AuthController {
     }
 
     @PostMapping("/mobile/refresh")
-    public ResponseEntity<SingleSuccessApiResponse<MobileTokenReissueResponse>> reIssueToken(MobileTokenReissueRequest request) {
+    public ResponseEntity<SingleSuccessApiResponse<MobileTokenReissueResponse>> reIssueToken(@RequestBody MobileTokenReissueRequest request) {
         AuthenticationTokens authenticationTokens = mobileAuthService.reissueToken(request);
         MobileTokenReissueResponse mobileTokenReissueResponse = MobileTokenReissueResponse.of(authenticationTokens);
 
