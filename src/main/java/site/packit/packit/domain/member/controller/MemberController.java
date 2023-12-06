@@ -52,9 +52,7 @@ public class MemberController {
     }
 
     @DeleteMapping()
-    public ResponseEntity<SuccessApiResponse> deleteMember(
-            @AuthenticationPrincipal CustomUserPrincipal principal
-    ) {
+    public ResponseEntity<SuccessApiResponse> deleteMember(@AuthenticationPrincipal CustomUserPrincipal principal) {
         memberService.deleteMember(principal.getMemberId());
 
         return ResponseUtil.successApiResponse(OK, "성공적으로 사용자 정보가 삭제되었습니다.");
