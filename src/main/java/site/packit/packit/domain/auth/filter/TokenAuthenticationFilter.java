@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import site.packit.packit.domain.auth.exception.AuthException;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
-import site.packit.packit.domain.auth.service.AuthService;
+import site.packit.packit.domain.auth.service.GlobalAuthService;
 import site.packit.packit.domain.member.constant.AccountStatus;
 import site.packit.packit.global.exception.ErrorCode;
 import site.packit.packit.global.util.HeaderUtil;
@@ -26,10 +26,10 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private static final String TOKEN_REISSUE_REQUEST_URI = "/api/auth/refresh";
     private static final List<String> REGISTER_REQUEST_URI = List.of("/api/members", "/api/images");
 
-    private final AuthService authService;
+    private final GlobalAuthService globalAuthService;
 
-    public TokenAuthenticationFilter(AuthService authService) {
-        this.authService = authService;
+    public TokenAuthenticationFilter(GlobalAuthService globalAuthService) {
+        this.globalAuthService = globalAuthService;
     }
 
     @Override
@@ -72,7 +72,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     }
 
     private Authentication configAuthentication(String accessTokenValue) {
-        Authentication authentication = authService.createMemberAuthentication(accessTokenValue);
+        Authentication authentication = globalAuthService.createMemberAuthentication(accessTokenValue);
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         return authentication;
