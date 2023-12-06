@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
+import static site.packit.packit.domain.auth.constant.CookieConstant.*;
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.INVALID_REDIRECT_URI;
 import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
 import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
@@ -29,13 +30,9 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
     private final OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository;
 
     @Value("${app.oauth2.authorized-redirect-uris}")
-    private List<String> authorizedRedirectUris;
-    @Value("${app.cookie.redirect-uri-param-cookie-name}")
-    private String redirectUriParamCookieName;
-    @Value("${app.cookie.refresh-token-cookie-name}")
-    private String refreshTokenCookieName;
-    @Value("${app.oauth2.cookie-max-age}")
-    private Integer cookieMaxAge;
+    private List<String> AUTHORIZED_REDIRECT_URIS;
+    @Value("${app.jwt.expiry.refresh-token-expiry}")
+    private int REFRESH_TOKEN_EXPIRY;
 
     public CustomOAuth2AuthenticationSuccessHandler(TokenService tokenService, OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository) {
         this.tokenService = tokenService;
@@ -73,7 +70,7 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
     }
 
     private String parseRedirectUrl(HttpServletRequest request) {
-        String redirectUrl = CookieUtil.getCookie(request, redirectUriParamCookieName)
+        String redirectUrl = CookieUtil.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
                 .map(Cookie::getValue)
                 .orElse(getDefaultTargetUrl());
 
@@ -84,7 +81,7 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
 
     private void validateRedirectUri(String redirectUri) {
         URI clientRedirectUri = URI.create(redirectUri);
-        boolean isValidate = authorizedRedirectUris.stream()
+        boolean isValidate = AUTHORIZED_REDIRECT_URIS.stream()
                 .anyMatch(authorizedRedirectUri -> {
                     URI authorizedURI = URI.create(authorizedRedirectUri);
 
@@ -135,8 +132,8 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
             HttpServletResponse response,
             String refreshToken
     ) {
-        CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
-        CookieUtil.addCookie(response, refreshTokenCookieName, refreshToken, cookieMaxAge);
+        CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
+        CookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_TOKEN_EXPIRY);
     }
 
     private void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {

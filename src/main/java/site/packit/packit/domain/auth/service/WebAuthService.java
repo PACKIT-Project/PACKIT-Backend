@@ -10,14 +10,13 @@ import site.packit.packit.domain.auth.exception.AuthException;
 import site.packit.packit.global.util.CookieUtil;
 import site.packit.packit.global.util.HeaderUtil;
 
+import static site.packit.packit.domain.auth.constant.CookieConstant.REFRESH_TOKEN_COOKIE_NAME;
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.REQUEST_REFRESH_TOKEN_NOT_FOUND;
 
 @Service
 public class WebAuthService {
 
-    @Value("${app.cookie.refresh-token-cookie-name}")
-    private String refreshTokenCookieName;
-    @Value("${app.jwt.expiry.refresh-token-cookie-max-age}")
+    @Value("${app.jwt.expiry.refresh-token-expiry}")
     private int refreshTokenCookieMaxAge;
 
     private final TokenService tokenService;
@@ -28,7 +27,7 @@ public class WebAuthService {
 
     public void logout(HttpServletRequest request, HttpServletResponse response, String memberPersonalId) {
         tokenService.deleteMemberRefreshToken(memberPersonalId);
-        CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
+        CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
     }
 
     public String reissueToken(HttpServletRequest request, HttpServletResponse response) {
@@ -42,13 +41,13 @@ public class WebAuthService {
     }
 
     private String parseRefreshTokenFromRequest(HttpServletRequest request) {
-        return CookieUtil.getCookie(request, refreshTokenCookieName)
+        return CookieUtil.getCookie(request, REFRESH_TOKEN_COOKIE_NAME)
                 .map(Cookie::getValue)
                 .orElseThrow(() -> new AuthException(REQUEST_REFRESH_TOKEN_NOT_FOUND));
     }
 
     private void setRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
-        CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
-        CookieUtil.addCookie(response, refreshTokenCookieName, refreshToken, refreshTokenCookieMaxAge);
+        CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
+        CookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, refreshTokenCookieMaxAge);
     }
 }
