@@ -1,24 +1,20 @@
 package site.packit.packit.domain.auth.service;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import site.packit.packit.domain.auth.dto.AuthenticationTokens;
 import site.packit.packit.domain.auth.entity.RefreshToken;
 import site.packit.packit.domain.auth.exception.AuthException;
 import site.packit.packit.domain.auth.jwt.AuthenticationToken;
 import site.packit.packit.domain.auth.jwt.TokenProvider;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.auth.repository.RefreshTokenRepository;
-import site.packit.packit.global.util.CookieUtil;
-import site.packit.packit.global.util.HeaderUtil;
 
 import java.util.Collection;
 
-import static site.packit.packit.domain.auth.exception.AuthErrorCode.*;
+import static site.packit.packit.domain.auth.exception.AuthErrorCode.INVALID_TOKEN;
+import static site.packit.packit.domain.auth.exception.AuthErrorCode.NOT_EXPIRED_TOKEN;
 
 @Transactional
 @Service
@@ -27,11 +23,6 @@ public class TokenService {
     private final TokenProvider tokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Value("${app.cookie.refresh-token-cookie-name}")
-    private String refreshTokenCookieName;
-    @Value("${app.jwt.expiry.refresh-token-cookie-max-age}")
-    private int refreshTokenCookieMaxAge;
-    
     public TokenService(RefreshTokenRepository refreshTokenRepository, TokenProvider tokenProvider) {
         this.refreshTokenRepository = refreshTokenRepository;
         this.tokenProvider = tokenProvider;
@@ -55,26 +46,16 @@ public class TokenService {
         return refreshToken;
     }
 
-    public String reissueToken(HttpServletRequest request, HttpServletResponse response) {
-        AuthenticationToken expiredAccessToken = parseAccessTokenFromRequest(request);
-        AuthenticationToken refreshToken = parseRefreshTokenFromRequest(request);
+    public AuthenticationTokens reissueToken(String expiredAccessTokenValue, String refreshTokenValue) {
+        AuthenticationToken expiredAccessToken = tokenProvider.convertAccessTokenValueToObject(expiredAccessTokenValue);
+        AuthenticationToken refreshToken = tokenProvider.convertRefreshTokenValueToObject(refreshTokenValue);
         checkExpiredToken(expiredAccessToken);
         validateRefreshToken(refreshToken);
 
         AuthenticationToken newAccessToken = tokenProvider.createAccessToken(refreshToken.getSubject(), refreshToken.getMemberGrantedAuthorities());
         AuthenticationToken newRefreshToken = updateNewRefreshToken(refreshToken.getValue(), refreshToken.getSubject(), refreshToken.getMemberGrantedAuthorities());
 
-        setRefreshTokenToCookie(request, response, newRefreshToken.getValue());
-
-        return newAccessToken.getValue();
-    }
-
-    private AuthenticationToken parseRefreshTokenFromRequest(HttpServletRequest request) {
-        String refreshTokenValue = CookieUtil.getCookie(request, refreshTokenCookieName)
-                .map(Cookie::getValue)
-                .orElseThrow(() -> new AuthException(REQUEST_REFRESH_TOKEN_NOT_FOUND));
-
-        return tokenProvider.convertRefreshTokenValueToObject(refreshTokenValue);
+        return new AuthenticationTokens(newAccessToken.getValue(), newRefreshToken.getValue());
     }
 
     private void checkExpiredToken(AuthenticationToken expiredAccessToken) {
@@ -105,19 +86,8 @@ public class TokenService {
         return newRefreshToken;
     }
 
-    private void setRefreshTokenToCookie(HttpServletRequest request, HttpServletResponse response, String refreshToken) {
-        CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
-        CookieUtil.addCookie(response, refreshTokenCookieName, refreshToken, refreshTokenCookieMaxAge);
-    }
-
-    public void deleteAllRefreshToken(HttpServletRequest request, HttpServletResponse response) {
-        AuthenticationToken accessToken = parseAccessTokenFromRequest(request);
-        refreshTokenRepository.deleteAllByMemberPersonalId(accessToken.getSubject());
-        CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
-    }
-
-    private AuthenticationToken parseAccessTokenFromRequest(HttpServletRequest request) {
-        return tokenProvider.convertAccessTokenValueToObject(HeaderUtil.getAccessToken(request));
+    public void deleteMemberRefreshToken(String memberPersonalId) {
+        refreshTokenRepository.deleteAllByMemberPersonalId(memberPersonalId);
     }
 
     public AuthenticationToken getAuthenticationToken(String accessTokenValue) {
