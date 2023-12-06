@@ -23,7 +23,7 @@ import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String TOKEN_REISSUE_REQUEST_URI = "/api/auth/refresh";
+    private static final List<String> TOKEN_REISSUE_REQUEST_URI = List.of("/api/auth/web/refresh", "/api/auth/mobile/refresh");
     private static final List<String> REGISTER_REQUEST_URI = List.of("/api/members", "/api/images");
 
     private final GlobalAuthService globalAuthService;
@@ -68,7 +68,7 @@ public class TokenAuthenticationFilter extends OncePerRequestFilter {
     private boolean isTokenReissueRequest(HttpServletRequest request) {
         String requestURI = request.getRequestURI();
 
-        return TOKEN_REISSUE_REQUEST_URI.equals(requestURI);
+        return TOKEN_REISSUE_REQUEST_URI.contains(requestURI);
     }
 
     private Authentication configAuthentication(String accessTokenValue) {
