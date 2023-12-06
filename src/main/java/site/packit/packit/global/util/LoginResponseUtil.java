@@ -1,6 +1,7 @@
 package site.packit.packit.global.util;
 
 import org.springframework.web.util.UriComponentsBuilder;
+import site.packit.packit.domain.auth.dto.mobile.response.MobileLoginResponse;
 import site.packit.packit.domain.member.constant.AccountStatus;
 
 public class LoginResponseUtil {
@@ -34,5 +35,17 @@ public class LoginResponseUtil {
                 .queryParam("member-status", accountStatus.name())
                 .build()
                 .toUriString();
+    }
+
+    public static MobileLoginResponse createActiveMemberLoginResponse(AccountStatus accountStatus, String accessToken, String refreshToken) {
+        return new MobileLoginResponse(accountStatus.name(), accessToken, refreshToken, "");
+    }
+
+    public static MobileLoginResponse createWaitingToJoinMemberLoginResponse(AccountStatus accountStatus, String memberPersonalId) {
+        return new MobileLoginResponse(accountStatus.name(), "", "", memberPersonalId);
+    }
+
+    public static MobileLoginResponse createDeleteMemberLoginResponse(AccountStatus accountStatus) {
+        return new MobileLoginResponse(accountStatus.name(), "", "", "");
     }
 }
