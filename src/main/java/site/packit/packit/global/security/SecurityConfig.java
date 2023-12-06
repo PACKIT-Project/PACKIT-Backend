@@ -17,7 +17,7 @@ import site.packit.packit.domain.auth.handler.CustomOAuth2AuthenticationFailureH
 import site.packit.packit.domain.auth.handler.CustomOAuth2AuthenticationSuccessHandler;
 import site.packit.packit.domain.auth.handler.TokenAccessDeniedHandler;
 import site.packit.packit.domain.auth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
-import site.packit.packit.domain.auth.service.AuthService;
+import site.packit.packit.domain.auth.service.GlobalAuthService;
 import site.packit.packit.domain.auth.service.TokenService;
 
 import java.util.List;
@@ -28,22 +28,24 @@ import static org.springframework.http.HttpMethod.*;
 public class SecurityConfig {
 
     private static final List<PermitAllPattern> PERMIT_ALL_PATTERNS = List.of(
-            PermitAllPattern.of("/api/auth/refresh", POST),
+            PermitAllPattern.of("/api/auth/mobile/login", POST),
+            PermitAllPattern.of("/api/auth/web/refresh", POST),
+            PermitAllPattern.of("/api/auth/mobile/refresh", POST),
             PermitAllPattern.of("/api/check", GET),
-            PermitAllPattern.of("/api/auth/login", POST)
+            PermitAllPattern.of("/api/members", POST)
     );
 
     private final TokenService tokenService;
-    private final AuthService authService;
+    private final GlobalAuthService globalAuthService;
     private final OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService;
 
     public SecurityConfig(
             TokenService tokenService,
-            AuthService authService,
+            GlobalAuthService globalAuthService,
             OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService
     ) {
         this.tokenService = tokenService;
-        this.authService = authService;
+        this.globalAuthService = globalAuthService;
         this.oAuth2UserService = oAuth2UserService;
     }
 
@@ -95,7 +97,7 @@ public class SecurityConfig {
     }
 
     private TokenAuthenticationFilter tokenAuthenticationFilter() {
-        return new TokenAuthenticationFilter(authService);
+        return new TokenAuthenticationFilter(globalAuthService);
     }
 
     private AntPathRequestMatcher[] parseRequestMatchers() {

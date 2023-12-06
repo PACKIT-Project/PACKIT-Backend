@@ -86,15 +86,6 @@ public class Member extends BaseTimeEntity {
         return List.of(new SimpleGrantedAuthority(accountRole.toString()));
     }
 
-    public boolean validateLoginProvider(LoginProvider loginProvider) {
-        if (this.loginProvider != loginProvider) {
-            String errorMessage = "이미 " + loginProvider.name() + "계정으로 가입되어 있습니다.";
-            throw new AuthException(LOGIN_PROVIDER_MISMATCH, errorMessage);
-        }
-
-        return true;
-    }
-
     public void updateMemberProfile(String nickname, String profileImageUrl) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
@@ -102,5 +93,14 @@ public class Member extends BaseTimeEntity {
 
     public void remove() {
         this.accountStatus = DELETE;
+    }
+
+    public boolean validateLoginProvider(LoginProvider loginProvider) {
+        if (this.loginProvider != loginProvider) {
+            String errorMessage = "이미 " + this.loginProvider.name() + "계정으로 가입되어 있습니다.";
+            throw new AuthException(LOGIN_PROVIDER_MISMATCH, errorMessage);
+        }
+
+        return true;
     }
 }

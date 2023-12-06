@@ -7,18 +7,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
-import org.springframework.web.util.UriComponentsBuilder;
 import site.packit.packit.domain.auth.exception.AuthException;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.auth.repository.OAuth2AuthorizationRequestBasedOnCookieRepository;
 import site.packit.packit.domain.auth.service.TokenService;
 import site.packit.packit.global.util.CookieUtil;
+import site.packit.packit.global.util.LoginResponseUtil;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 
+import static site.packit.packit.domain.auth.constant.CookieConstant.*;
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.INVALID_REDIRECT_URI;
+import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
+import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
 
 @Slf4j
 public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -27,13 +30,9 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
     private final OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository;
 
     @Value("${app.oauth2.authorized-redirect-uris}")
-    private List<String> authorizedRedirectUris;
-    @Value("${app.cookie.redirect-uri-param-cookie-name}")
-    private String redirectUriParamCookieName;
-    @Value("${app.cookie.refresh-token-cookie-name}")
-    private String refreshTokenCookieName;
-    @Value("${app.oauth2.cookie-max-age}")
-    private Integer cookieMaxAge;
+    private List<String> AUTHORIZED_REDIRECT_URIS;
+    @Value("${app.jwt.expiry.refresh-token-expiry}")
+    private int REFRESH_TOKEN_EXPIRY;
 
     public CustomOAuth2AuthenticationSuccessHandler(TokenService tokenService, OAuth2AuthorizationRequestBasedOnCookieRepository oAuth2AuthorizationRequestBasedOnCookieRepository) {
         this.tokenService = tokenService;
@@ -66,17 +65,12 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
     ) {
         String redirectUrl = parseRedirectUrl(request);
         CustomUserPrincipal userPrincipal = (CustomUserPrincipal) authentication.getPrincipal();
-        String accessToken = tokenService.createAccessToken(userPrincipal);
-        String refreshToken = tokenService.createRefreshToken(userPrincipal);
-        log.info("[created-access-token] : " + accessToken);
 
-        setCookie(request, response, refreshToken);
-
-        return createTargetUri(redirectUrl, accessToken, userPrincipal.getMemberAccountStatus().name());
+        return createLoginResponseWithMemberAccountStatus(request, response, redirectUrl, userPrincipal);
     }
 
     private String parseRedirectUrl(HttpServletRequest request) {
-        String redirectUrl = CookieUtil.getCookie(request, redirectUriParamCookieName)
+        String redirectUrl = CookieUtil.getCookie(request, REDIRECT_URI_PARAM_COOKIE_NAME)
                 .map(Cookie::getValue)
                 .orElse(getDefaultTargetUrl());
 
@@ -87,7 +81,7 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
 
     private void validateRedirectUri(String redirectUri) {
         URI clientRedirectUri = URI.create(redirectUri);
-        boolean isValidate = authorizedRedirectUris.stream()
+        boolean isValidate = AUTHORIZED_REDIRECT_URIS.stream()
                 .anyMatch(authorizedRedirectUri -> {
                     URI authorizedURI = URI.create(authorizedRedirectUri);
 
@@ -100,25 +94,46 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
         }
     }
 
+    private String createLoginResponseWithMemberAccountStatus(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String redirectUrl,
+            CustomUserPrincipal userPrincipal
+    ) {
+        if (userPrincipal.getMemberAccountStatus() == ACTIVE) {
+            return createActiveMemberLoginResponse(request, response, redirectUrl, userPrincipal);
+        }
+
+        if (userPrincipal.getMemberAccountStatus() == WAITING_TO_JOIN) {
+            return LoginResponseUtil.createRedirectUriForWaitingToJoinMember(redirectUrl, userPrincipal.getMemberAccountStatus(), userPrincipal.getUsername());
+        }
+
+        return LoginResponseUtil.createRedirectUriForDeleteMember(redirectUrl, userPrincipal.getMemberAccountStatus());
+    }
+
+    private String createActiveMemberLoginResponse(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            String redirectUrl,
+            CustomUserPrincipal userPrincipal
+    ) {
+        String accessToken = tokenService.createAccessToken(userPrincipal);
+        String refreshToken = tokenService.createRefreshToken(userPrincipal);
+
+        log.info("[created-access-token] : " + accessToken);
+
+        setCookie(request, response, refreshToken);
+
+        return LoginResponseUtil.createRedirectUriForActiveMember(redirectUrl, userPrincipal.getMemberAccountStatus(), accessToken);
+    }
+
     private void setCookie(
             HttpServletRequest request,
             HttpServletResponse response,
             String refreshToken
     ) {
-        CookieUtil.deleteCookie(request, response, refreshTokenCookieName);
-        CookieUtil.addCookie(response, refreshTokenCookieName, refreshToken, cookieMaxAge);
-    }
-
-    private String createTargetUri(
-            String redirectUrl,
-            String accessToken,
-            String memberStatus
-    ) {
-        return UriComponentsBuilder.fromUriString(redirectUrl)
-                .queryParam("access-token", accessToken)
-                .queryParam("member-status", memberStatus)
-                .build()
-                .toUriString();
+        CookieUtil.deleteCookie(request, response, REFRESH_TOKEN_COOKIE_NAME);
+        CookieUtil.addCookie(response, REFRESH_TOKEN_COOKIE_NAME, refreshToken, REFRESH_TOKEN_EXPIRY);
     }
 
     private void clearAuthenticationAttributes(HttpServletRequest request, HttpServletResponse response) {
