@@ -17,7 +17,7 @@ public class AuthExceptionHandler {
         log.error("[handle AuthenticationException] - {}", exception.getMessage());
 
         return new ResponseEntity<>(
-                ErrorApiResponse.of(errorCode, errorCode.getMessage()),
+                ErrorApiResponse.of(errorCode, exception.getMessage()),
                 errorCode.getHttpStatus()
         );
     }

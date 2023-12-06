@@ -25,6 +25,7 @@ public class MemberService {
 
     public Member findMemberByPersonalIdOrCreateMember(String personalId, LoginProvider loginProvider) {
         return memberRepository.findByPersonalId(personalId)
+                .filter(findMember -> findMember.validateLoginProvider(loginProvider))
                 .orElseGet(() -> createTempMember(personalId, loginProvider));
     }
 
