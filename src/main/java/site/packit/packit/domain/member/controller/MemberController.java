@@ -5,7 +5,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.member.dto.MemberDto;
-import site.packit.packit.domain.member.dto.request.CheckMemberNicknameDuplicatedRequest;
 import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.member.dto.response.CheckMemberNicknameDuplicatedResponse;
 import site.packit.packit.domain.member.dto.response.GetMemberProfileResponse;
@@ -65,8 +64,8 @@ public class MemberController {
     }
 
     @GetMapping("/nicknames/is-duplicate")
-    public ResponseEntity<SingleSuccessApiResponse<CheckMemberNicknameDuplicatedResponse>> checkMemberNicknameDuplicated(@RequestBody CheckMemberNicknameDuplicatedRequest request) {
-        boolean isDuplicated = memberService.checkMemberNicknameDuplicated(request.nickname());
+    public ResponseEntity<SingleSuccessApiResponse<CheckMemberNicknameDuplicatedResponse>> checkMemberNicknameDuplicated(@RequestParam String nickname) {
+        boolean isDuplicated = memberService.checkMemberNicknameDuplicated(nickname);
         CheckMemberNicknameDuplicatedResponse response = new CheckMemberNicknameDuplicatedResponse(isDuplicated);
 
         return ResponseUtil.successApiResponse(OK, "사용자 닉네임 중복 검증 결과 입니다.", response);
