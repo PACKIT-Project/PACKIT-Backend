@@ -6,6 +6,7 @@ import site.packit.packit.domain.member.constant.LoginProvider;
 import site.packit.packit.domain.member.dto.MemberDto;
 import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.member.entity.Member;
+import site.packit.packit.domain.member.exception.MemberErrorCode;
 import site.packit.packit.domain.member.exception.MemberException;
 import site.packit.packit.domain.member.repository.MemberRepository;
 
@@ -74,5 +75,17 @@ public class MemberService {
     @Transactional(readOnly = true)
     public boolean checkMemberNicknameDuplicated(String memberNickname) {
         return memberRepository.existsByNickname(memberNickname);
+    }
+
+    public void enableNotification(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+        member.enableNotification();
+    }
+
+    public void disableNotification(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+        member.disableNotification();
     }
 }
