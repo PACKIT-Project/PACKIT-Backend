@@ -35,7 +35,7 @@ public class MemberService {
 
     public Long register(Long memberId, UpdateMemberProfileRequest request) {
         Member tempMember = getTempMember(memberId);
-        tempMember.register(request.nickname(), request.profileImageUrl());
+        tempMember.register(request.nickname(), request.profileImageUrl(), request.enableNotification(), request.checkTerms());
 
         return tempMember.getId();
     }
