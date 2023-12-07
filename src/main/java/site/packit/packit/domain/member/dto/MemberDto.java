@@ -1,4 +1,4 @@
-package site.packit.packit.domain.member.dto.business;
+package site.packit.packit.domain.member.dto;
 
 import site.packit.packit.domain.member.constant.AccountRole;
 import site.packit.packit.domain.member.constant.AccountStatus;

@@ -1,6 +1,6 @@
 package site.packit.packit.domain.member.dto.response;
 
-import site.packit.packit.domain.member.dto.business.MemberDto;
+import site.packit.packit.domain.member.dto.MemberDto;
 
 public record GetMemberProfileResponse(
         Long id,
