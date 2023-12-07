@@ -70,4 +70,9 @@ public class MemberService {
                 .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
         member.remove();
     }
+
+    @Transactional(readOnly = true)
+    public boolean checkMemberNicknameDuplicated(String memberNickname) {
+        return memberRepository.existsByNickname(memberNickname);
+    }
 }
