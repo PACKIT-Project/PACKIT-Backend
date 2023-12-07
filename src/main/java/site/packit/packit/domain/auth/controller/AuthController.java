@@ -16,10 +16,10 @@ import site.packit.packit.domain.auth.service.MobileAuthService;
 import site.packit.packit.domain.auth.service.WebAuthService;
 import site.packit.packit.global.response.success.SingleSuccessApiResponse;
 import site.packit.packit.global.response.success.SuccessApiResponse;
-import site.packit.packit.global.response.util.ResponseUtil;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.OK;
+import static site.packit.packit.global.response.util.ResponseUtil.successApiResponse;
 
 @RequestMapping("/api/auth")
 @RestController
@@ -37,14 +37,14 @@ public class AuthController {
     public ResponseEntity<SingleSuccessApiResponse<MobileLoginResponse>> login(@RequestBody MobileLoginRequest request) {
         MobileLoginResponse loginResult = mobileAuthService.login(request);
 
-        return ResponseUtil.successApiResponse(OK, "성공적으로 로그인 되었습니다.", loginResult);
+        return successApiResponse(OK, "성공적으로 로그인 되었습니다.", loginResult);
     }
 
     @DeleteMapping("/mobile/logout")
     public ResponseEntity<SuccessApiResponse> logout(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
         mobileAuthService.logout(userPrincipal.getUsername());
 
-        return ResponseUtil.successApiResponse(OK, "성공적으로 로그아웃 되었습니다.");
+        return successApiResponse(OK, "성공적으로 로그아웃 되었습니다.");
     }
 
     @PostMapping("/mobile/refresh")
@@ -52,14 +52,14 @@ public class AuthController {
         AuthenticationTokens authenticationTokens = mobileAuthService.reissueToken(request);
         MobileTokenReissueResponse mobileTokenReissueResponse = MobileTokenReissueResponse.of(authenticationTokens);
 
-        return ResponseUtil.successApiResponse(CREATED, "성공적으로 토큰이 재발급 되었습니다.", mobileTokenReissueResponse);
+        return successApiResponse(CREATED, "성공적으로 토큰이 재발급 되었습니다.", mobileTokenReissueResponse);
     }
 
     @DeleteMapping("/web/logout")
     public ResponseEntity<SuccessApiResponse> logout(@AuthenticationPrincipal CustomUserPrincipal userPrincipal, HttpServletRequest request, HttpServletResponse response) {
         webAuthService.logout(request, response, userPrincipal.getUsername());
 
-        return ResponseUtil.successApiResponse(OK, "성공적으로 로그아웃 되었습니다.");
+        return successApiResponse(OK, "성공적으로 로그아웃 되었습니다.");
     }
 
     @PostMapping("/web/refresh")
@@ -67,6 +67,6 @@ public class AuthController {
         String newAccessToken = webAuthService.reissueToken(request, response);
         WebTokenReissueResponse webTokenReissueResponse = WebTokenReissueResponse.of(newAccessToken);
 
-        return ResponseUtil.successApiResponse(CREATED, "성공적으로 토큰이 재발급 되었습니다.", webTokenReissueResponse);
+        return successApiResponse(CREATED, "성공적으로 토큰이 재발급 되었습니다.", webTokenReissueResponse);
     }
 }
