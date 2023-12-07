@@ -1,4 +1,4 @@
-package site.packit.packit.domain.member.dto.business;
+package site.packit.packit.domain.member.dto;
 
 import site.packit.packit.domain.member.constant.AccountRole;
 import site.packit.packit.domain.member.constant.AccountStatus;
@@ -12,7 +12,8 @@ public record MemberDto(
         String profileImageUrl,
         AccountStatus accountStatus,
         AccountRole accountRole,
-        LoginProvider loginProvider
+        LoginProvider loginProvider,
+        boolean enableNotification
 ) {
     public static MemberDto of(Member member) {
         return new MemberDto(
@@ -22,7 +23,8 @@ public record MemberDto(
                 member.getProfileImageUrl(),
                 member.getAccountStatus(),
                 member.getAccountRole(),
-                member.getLoginProvider()
+                member.getLoginProvider(),
+                member.isEnableNotification()
         );
     }
 }

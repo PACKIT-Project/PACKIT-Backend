@@ -50,6 +50,12 @@ public class Member extends BaseTimeEntity {
     @Column(length = 50, nullable = false, updatable = false)
     private LoginProvider loginProvider;
 
+    @Column(nullable = false)
+    private boolean enableNotification;
+
+    @Column(nullable = false)
+    private boolean checkTerms;
+
     private Member(
             String personalId,
             String nickname,
@@ -64,6 +70,8 @@ public class Member extends BaseTimeEntity {
         this.accountStatus = accountStatus;
         this.accountRole = accountRole;
         this.loginProvider = loginProvider;
+        this.checkTerms = false;
+        this.enableNotification = false;
     }
 
     public static Member createTempUser(String personalId, LoginProvider loginProvider) {
@@ -77,18 +85,39 @@ public class Member extends BaseTimeEntity {
         );
     }
 
-    public void register(String nickname, String profileImageUrl) {
+    public void register(
+            String nickname,
+            String profileImageUrl,
+            boolean enableNotification,
+            boolean checkTerms
+    ) {
         updateMemberProfile(nickname, profileImageUrl);
-        this.accountStatus = ACTIVE;
-    }
 
-    public Collection<GrantedAuthority> getGrantedAuthorities() {
-        return List.of(new SimpleGrantedAuthority(accountRole.toString()));
+        if ((enableNotification)) {
+            enableNotification();
+        } else {
+            disableNotification();
+        }
+
+        this.checkTerms = checkTerms;
+        this.accountStatus = ACTIVE;
     }
 
     public void updateMemberProfile(String nickname, String profileImageUrl) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
+    }
+
+    public void enableNotification() {
+        this.enableNotification = true;
+    }
+
+    public void disableNotification() {
+        this.enableNotification = false;
+    }
+
+    public Collection<GrantedAuthority> getGrantedAuthorities() {
+        return List.of(new SimpleGrantedAuthority(accountRole.toString()));
     }
 
     public void remove() {

@@ -1,5 +1,6 @@
 package site.packit.packit.domain.auth.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.packit.packit.domain.auth.dto.AuthenticationTokens;
@@ -9,11 +10,12 @@ import site.packit.packit.domain.auth.dto.mobile.response.MobileLoginResponse;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.service.MemberService;
-import site.packit.packit.global.util.LoginResponseUtil;
 
-import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
-import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
+import static site.packit.packit.domain.member.constant.AccountStatus.DELETE;
+import static site.packit.packit.global.util.LoginResponseUtil.createActiveMemberOrWaitingToJoinLoginResponse;
+import static site.packit.packit.global.util.LoginResponseUtil.createDeleteMemberLoginResponse;
 
+@Slf4j
 @Service
 public class MobileAuthService {
 
@@ -30,18 +32,15 @@ public class MobileAuthService {
         Member member = memberService.findMemberByPersonalIdOrCreateMember(request.memberPersonalId(), request.getLoginProvider());
         CustomUserPrincipal userPrincipal = CustomUserPrincipal.from(member);
 
-        if (userPrincipal.getMemberAccountStatus() == ACTIVE) {
-            String accessToken = tokenService.createAccessToken(userPrincipal);
-            String refreshToken = tokenService.createRefreshToken(userPrincipal);
-
-            return LoginResponseUtil.createActiveMemberLoginResponse(userPrincipal.getMemberAccountStatus(), accessToken, refreshToken);
+        if (userPrincipal.getMemberAccountStatus() == DELETE) {
+            return createDeleteMemberLoginResponse(userPrincipal.getMemberAccountStatus());
         }
 
-        if (userPrincipal.getMemberAccountStatus() == WAITING_TO_JOIN) {
-            return LoginResponseUtil.createWaitingToJoinMemberLoginResponse(userPrincipal.getMemberAccountStatus(), userPrincipal.getUsername());
-        }
+        String accessToken = tokenService.createAccessToken(userPrincipal);
+        log.info("[created-access-token] : " + accessToken);
+        String refreshToken = tokenService.createRefreshToken(userPrincipal);
 
-        return LoginResponseUtil.createDeleteMemberLoginResponse(userPrincipal.getMemberAccountStatus());
+        return createActiveMemberOrWaitingToJoinLoginResponse(userPrincipal.getMemberAccountStatus(), accessToken, refreshToken);
     }
 
     public void logout(String memberPersonalId) {

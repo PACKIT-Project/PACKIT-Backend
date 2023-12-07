@@ -3,9 +3,10 @@ package site.packit.packit.domain.member.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.packit.packit.domain.member.constant.LoginProvider;
-import site.packit.packit.domain.member.dto.business.MemberDto;
+import site.packit.packit.domain.member.dto.MemberDto;
 import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.member.entity.Member;
+import site.packit.packit.domain.member.exception.MemberErrorCode;
 import site.packit.packit.domain.member.exception.MemberException;
 import site.packit.packit.domain.member.repository.MemberRepository;
 
@@ -33,12 +34,16 @@ public class MemberService {
         return memberRepository.save(Member.createTempUser(personalId, loginProvider));
     }
 
-    public Long register(String personalId, UpdateMemberProfileRequest request) {
-        Member tempMember = memberRepository.findByPersonalIdAndAccountStatus(personalId, WAITING_TO_JOIN)
-                .orElseThrow(() -> new MemberException(TEMP_MEMBER_NOT_FOUND));
-        tempMember.register(request.nickname(), request.profileImageUrl());
+    public Long register(Long memberId, UpdateMemberProfileRequest request) {
+        Member tempMember = getTempMember(memberId);
+        tempMember.register(request.nickname(), request.profileImageUrl(), request.enableNotification(), request.checkTerms());
 
         return tempMember.getId();
+    }
+
+    private Member getTempMember(Long memberId) {
+        return memberRepository.findByIdAndAccountStatus(memberId, WAITING_TO_JOIN)
+                .orElseThrow(() -> new MemberException(TEMP_MEMBER_NOT_FOUND));
     }
 
     @Transactional(readOnly = true)
@@ -65,5 +70,22 @@ public class MemberService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
         member.remove();
+    }
+
+    @Transactional(readOnly = true)
+    public boolean checkMemberNicknameDuplicated(String memberNickname) {
+        return memberRepository.existsByNickname(memberNickname);
+    }
+
+    public void enableNotification(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+        member.enableNotification();
+    }
+
+    public void disableNotification(Long memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+        member.disableNotification();
     }
 }
