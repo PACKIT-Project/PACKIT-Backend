@@ -1,7 +1,4 @@
 package site.packit.packit.domain.member.dto.request;
 
-public record UpdateMemberProfileRequest(
-        String nickname,
-        String profileImageUrl
-) {
+public record UpdateMemberProfileRequest(String nickname, String profileImageUrl) {
 }

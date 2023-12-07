@@ -4,7 +4,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
-import site.packit.packit.domain.member.dto.business.MemberDto;
+import site.packit.packit.domain.member.dto.MemberDto;
 import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.member.dto.response.GetMemberProfileResponse;
 import site.packit.packit.domain.member.dto.response.RegisterResponse;
@@ -26,11 +26,15 @@ public class MemberController {
         this.memberService = memberService;
     }
 
-    @PostMapping
-    public ResponseEntity<SingleSuccessApiResponse<RegisterResponse>> register(@RequestParam("member-personal-id") String memberPersonalId, @RequestBody UpdateMemberProfileRequest request) {
-        Long registerMemberId = memberService.register(memberPersonalId, request);
+    @PostMapping()
+    public ResponseEntity<SingleSuccessApiResponse<RegisterResponse>> register(
+            @AuthenticationPrincipal CustomUserPrincipal userPrincipal,
+            @RequestBody UpdateMemberProfileRequest updateMemberProfileRequest
+    ) {
+        Long registerMemberId = memberService.register(userPrincipal.getMemberId(), updateMemberProfileRequest);
+        RegisterResponse response = RegisterResponse.of(registerMemberId);
 
-        return successApiResponse(OK, "성공적으로 회원가입되었습니다.", RegisterResponse.of(registerMemberId));
+        return successApiResponse(OK, "성공적으로 회원가입되었습니다.", response);
     }
 
     @GetMapping("/profiles")

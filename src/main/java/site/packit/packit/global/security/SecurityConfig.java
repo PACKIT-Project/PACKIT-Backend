@@ -31,8 +31,7 @@ public class SecurityConfig {
             PermitAllPattern.of("/api/auth/mobile/login", POST),
             PermitAllPattern.of("/api/auth/web/refresh", POST),
             PermitAllPattern.of("/api/auth/mobile/refresh", POST),
-            PermitAllPattern.of("/api/check", GET),
-            PermitAllPattern.of("/api/members", POST)
+            PermitAllPattern.of("/api/check", GET)
     );
 
     private final TokenService tokenService;

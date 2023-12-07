@@ -20,8 +20,7 @@ import java.util.List;
 
 import static site.packit.packit.domain.auth.constant.CookieConstant.*;
 import static site.packit.packit.domain.auth.exception.AuthErrorCode.INVALID_REDIRECT_URI;
-import static site.packit.packit.domain.member.constant.AccountStatus.ACTIVE;
-import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
+import static site.packit.packit.domain.member.constant.AccountStatus.*;
 
 @Slf4j
 public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -100,31 +99,25 @@ public class CustomOAuth2AuthenticationSuccessHandler extends SimpleUrlAuthentic
             String redirectUrl,
             CustomUserPrincipal userPrincipal
     ) {
-        if (userPrincipal.getMemberAccountStatus() == ACTIVE) {
-            return createActiveMemberLoginResponse(request, response, redirectUrl, userPrincipal);
+        if (userPrincipal.getMemberAccountStatus() == DELETE) {
+            return LoginResponseUtil.createRedirectUriForDeleteMember(redirectUrl, userPrincipal.getMemberAccountStatus());
         }
 
-        if (userPrincipal.getMemberAccountStatus() == WAITING_TO_JOIN) {
-            return LoginResponseUtil.createRedirectUriForWaitingToJoinMember(redirectUrl, userPrincipal.getMemberAccountStatus(), userPrincipal.getUsername());
-        }
-
-        return LoginResponseUtil.createRedirectUriForDeleteMember(redirectUrl, userPrincipal.getMemberAccountStatus());
+        return createActiveOrWaitingToJoinMemberLoginResponse(request, response, redirectUrl, userPrincipal);
     }
 
-    private String createActiveMemberLoginResponse(
+    private String createActiveOrWaitingToJoinMemberLoginResponse(
             HttpServletRequest request,
             HttpServletResponse response,
             String redirectUrl,
             CustomUserPrincipal userPrincipal
     ) {
         String accessToken = tokenService.createAccessToken(userPrincipal);
-        String refreshToken = tokenService.createRefreshToken(userPrincipal);
-
         log.info("[created-access-token] : " + accessToken);
-
+        String refreshToken = tokenService.createRefreshToken(userPrincipal);
         setCookie(request, response, refreshToken);
 
-        return LoginResponseUtil.createRedirectUriForActiveMember(redirectUrl, userPrincipal.getMemberAccountStatus(), accessToken);
+        return LoginResponseUtil.createRedirectUriForActiveOrWaitingToJoinMember(redirectUrl, userPrincipal.getMemberAccountStatus(), accessToken);
     }
 
     private void setCookie(

@@ -23,8 +23,8 @@ import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO
 
 public class TokenAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final List<String> REGISTER_REQUEST_URI = List.of("/api/members", "/api/members/nicknames/is-duplicate", "/api/images");
     private static final List<String> TOKEN_REISSUE_REQUEST_URI = List.of("/api/auth/web/refresh", "/api/auth/mobile/refresh");
-    private static final List<String> REGISTER_REQUEST_URI = List.of("/api/members", "/api/images");
 
     private final GlobalAuthService globalAuthService;
 
