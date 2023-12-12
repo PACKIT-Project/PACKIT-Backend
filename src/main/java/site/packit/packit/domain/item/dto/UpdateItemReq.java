@@ -1,6 +1,6 @@
 package site.packit.packit.domain.item.dto;
 
-public record UpdateItemRequest(
+public record UpdateItemReq(
         Long id,
         Integer order
 ) {

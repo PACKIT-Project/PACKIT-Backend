@@ -6,7 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import site.packit.packit.domain.checkList.entity.CheckList;
+import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.global.audit.BaseEntity;
 
 @Getter
@@ -27,24 +27,24 @@ public class Item
     private Integer listOrder;
 
     @Column(columnDefinition = "TINYINT(1)")
-    private Boolean isChecked;
+    private boolean isChecked;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "checklist_id")
+    @JoinColumn(name = "category_id")
     @JsonIgnore
-    private CheckList checkList;
+    private Category category;
 
     @Builder
     public Item(
             String title,
             Integer listOrder,
             Boolean isChecked,
-            CheckList checkList
+            Category category
     ) {
         this.title = title;
         this.listOrder = listOrder;
         this.isChecked = isChecked;
-        this.checkList = checkList;
+        this.category = category;
     }
 
     public void setListOrder(

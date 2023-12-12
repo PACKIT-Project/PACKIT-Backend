@@ -1,6 +1,6 @@
 package site.packit.packit.domain.item.dto;
 
-public record UpdateItemTitleRequest(
+public record UpdateItemTitleReq(
         String title
 ) {
 }
