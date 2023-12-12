@@ -21,6 +21,10 @@ import site.packit.packit.global.exception.MaxParticipantsExceededException;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -82,6 +86,7 @@ public class TravelService {
     /**
      * 현재 동행자 수 & 초대코드 확인
      */
+    @Transactional(readOnly = true)
     public TravelInviteRes getInvitationCode(Long memberId, Long travelId){
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
@@ -94,7 +99,7 @@ public class TravelService {
     }
 
     /**
-     * 동행자 추가 (초대코드 입력) API
+     * 동행자 추가 (초대코드 입력)
      */
     public Long invitationTravel(Long memberId, String invitationCode){
         Member member = memberRepository.findByIdOrThrow(memberId);
@@ -108,6 +113,10 @@ public class TravelService {
         return travel.getId();
     }
 
+    /**
+     * 동행자 목록 조회
+     */
+    @Transactional(readOnly = true)
     public List<TravelMemberRes> getTravelMemberList(Long memberId, Long travelId){
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
@@ -139,6 +148,74 @@ public class TravelService {
         otherProfiles.add(0, myProfile);
         return otherProfiles;
     }
+
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+
+    /**
+     * 예정된/지난 여행 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<TravelListRes> getMyTravel(Long memberId, boolean upcoming) {
+        List<TravelMember> travelMembers = travelMemberRepository.findByMemberId(memberId);
+
+        List<TravelListRes> travelListResList = travelMembers.stream()
+                .map(this::mapToTravelListRes)
+                .collect(Collectors.toList());
+
+        if (upcoming) {
+            travelListResList = filterUpcomingTravels(travelListResList);
+            travelListResList.sort(Comparator.comparingInt(travelListRes -> Integer.parseInt(travelListRes.dDay())));
+        } else {
+            travelListResList = filterPastTravels(travelListResList);
+            travelListResList.sort(Comparator.comparingInt(travelListRes -> -Integer.parseInt(travelListRes.dDay())));
+        }
+
+        return travelListResList;
+    }
+
+    private List<TravelListRes> filterUpcomingTravels(List<TravelListRes> travelListResList) {
+        return travelListResList.stream()
+                .filter(travelListRes -> Integer.parseInt(travelListRes.dDay()) > 0)
+                .collect(Collectors.toList());
+    }
+
+    private List<TravelListRes> filterPastTravels(List<TravelListRes> travelListResList) {
+        return travelListResList.stream()
+                .filter(travelListRes -> Integer.parseInt(travelListRes.dDay()) <= 0)
+                .collect(Collectors.toList());
+    }
+
+    private TravelListRes mapToTravelListRes(TravelMember travelMember) {
+        Travel travel = travelMember.getTravel();
+        long memberNum = travelMemberRepository.countByTravel(travel);
+        int remainingDays = calculateRemainingDays(travel.getStartDate());
+
+        String formattedStartDate = formatLocalDateTime(travel.getStartDate());
+        String formattedEndDate = formatLocalDateTime(travel.getEndDate());
+
+        return new TravelListRes(
+                travel.getId(),
+                travel.getTitle(),
+                travel.getDestination().getCity(),
+                formattedStartDate,
+                formattedEndDate,
+                String.valueOf(remainingDays),
+                memberNum
+        );
+    }
+
+    private String formatLocalDateTime(LocalDateTime localDateTime) {
+        return localDateTime.format(dateFormatter);
+    }
+
+    private int calculateRemainingDays(LocalDateTime endDate) {
+        LocalDateTime now = LocalDateTime.now();
+        return (int) ChronoUnit.DAYS.between(now, endDate);
+    }
+
+
+
+
 
     private int calculateCheckedNum(Travel travel, Member member) {
         int checkedNum = 0;
