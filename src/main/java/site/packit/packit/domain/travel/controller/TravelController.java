@@ -78,7 +78,18 @@ public class TravelController {
             @AuthenticationPrincipal CustomUserPrincipal principal
     ){
         return ResponseUtil.successApiResponse(OK, "예정된 여행 목록 조회에 성공했습니다.",
-                travelService.getMyTravelUpcoming(principal.getMemberId()));
+                travelService.getMyTravel(principal.getMemberId(), true));
+    }
+
+    /**
+     * 지난 여행 목록 조회
+     */
+    @GetMapping(value = "/past")
+    public ResponseEntity<MultipleSuccessApiResponse<TravelListRes>> getMyTravelPast(
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ){
+        return ResponseUtil.successApiResponse(OK, "지난 여행 목록 조회에 성공했습니다.",
+                travelService.getMyTravel(principal.getMemberId(), false));
     }
 
 

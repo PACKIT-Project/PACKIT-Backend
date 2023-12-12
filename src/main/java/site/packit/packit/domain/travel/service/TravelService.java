@@ -152,15 +152,36 @@ public class TravelService {
     private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
 
     /**
-     * 예정된 여행 목록 조회
+     * 예정된/지난 여행 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<TravelListRes> getMyTravelUpcoming(Long memberId) {
+    public List<TravelListRes> getMyTravel(Long memberId, boolean upcoming) {
         List<TravelMember> travelMembers = travelMemberRepository.findByMemberId(memberId);
 
-        return travelMembers.stream()
+        List<TravelListRes> travelListResList = travelMembers.stream()
                 .map(this::mapToTravelListRes)
-                .sorted(Comparator.comparingInt(travelListRes -> Integer.parseInt(travelListRes.dDay())))
+                .collect(Collectors.toList());
+
+        if (upcoming) {
+            travelListResList = filterUpcomingTravels(travelListResList);
+            travelListResList.sort(Comparator.comparingInt(travelListRes -> Integer.parseInt(travelListRes.dDay())));
+        } else {
+            travelListResList = filterPastTravels(travelListResList);
+            travelListResList.sort(Comparator.comparingInt(travelListRes -> -Integer.parseInt(travelListRes.dDay())));
+        }
+
+        return travelListResList;
+    }
+
+    private List<TravelListRes> filterUpcomingTravels(List<TravelListRes> travelListResList) {
+        return travelListResList.stream()
+                .filter(travelListRes -> Integer.parseInt(travelListRes.dDay()) > 0)
+                .collect(Collectors.toList());
+    }
+
+    private List<TravelListRes> filterPastTravels(List<TravelListRes> travelListResList) {
+        return travelListResList.stream()
+                .filter(travelListRes -> Integer.parseInt(travelListRes.dDay()) <= 0)
                 .collect(Collectors.toList());
     }
 
@@ -187,10 +208,14 @@ public class TravelService {
         return localDateTime.format(dateFormatter);
     }
 
-    private int calculateRemainingDays(LocalDateTime startDate) {
+    private int calculateRemainingDays(LocalDateTime endDate) {
         LocalDateTime now = LocalDateTime.now();
-        return (int) now.until(startDate, ChronoUnit.DAYS);
+        return (int) ChronoUnit.DAYS.between(now, endDate);
     }
+
+
+
+
 
     private int calculateCheckedNum(Travel travel, Member member) {
         int checkedNum = 0;
