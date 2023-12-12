@@ -18,6 +18,8 @@ import site.packit.packit.global.exception.MaxParticipantsExceededException;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.security.SecureRandom;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static site.packit.packit.domain.travel.exception.TravelErrorCode.*;
 
@@ -99,6 +101,48 @@ public class TravelService {
         }
         addMemberToTravel(travel, member);
         return travel.getId();
+    }
+
+    public List<TravelMemberRes> getTravelMemberList(Long memberId, Long travelId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+        List<TravelMember> travelMembers = travelMemberRepository.findByTravel(travel);
+
+        // 자신의 프로필을 찾아서 me로 표시
+        TravelMemberRes myProfile = travelMembers.stream()
+                .filter(tm -> tm.getMember().equals(member))
+                .findFirst()
+                .map(tm -> new TravelMemberRes(
+                        tm.getMember().getId(),
+                        "me",
+                        tm.getMember().getProfileImageUrl(),
+                        calculateCheckedNum(tm),
+                        calculateUncheckedNum(tm)
+                ))
+                .orElseThrow(() -> new ResourceNotFoundException(NOT_MEMBER_IN));
+
+        List<TravelMemberRes> otherProfiles = travelMembers.stream()
+                .filter(tm -> !tm.getMember().equals(member))
+                .map(tm -> new TravelMemberRes(
+                        tm.getMember().getId(),
+                        tm.getMember().getNickname(),
+                        tm.getMember().getProfileImageUrl(),
+                        calculateCheckedNum(tm),
+                        calculateUncheckedNum(tm)
+                ))
+                .collect(Collectors.toList());
+        otherProfiles.add(0, myProfile);
+        return otherProfiles;
+    }
+
+    private int calculateCheckedNum(TravelMember travelMember) {
+        // TODO: 해당 TravelMember의 체크된 항목 수 계산 로직
+        return 0;
+    }
+
+    private int calculateUncheckedNum(TravelMember travelMember) {
+        // TODO: 해당 TravelMember의 체크되지 않은 항목 수 계산 로직
+        return 0;
     }
 
     private void validateTravelMemberExists(Travel travel, Member member) {

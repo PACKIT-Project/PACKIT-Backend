@@ -59,5 +59,16 @@ public class TravelController {
                 travelService.invitationTravel(principal.getMemberId(), invitationCode));
     }
 
+    /**
+     * 동행자 목록 조회 API
+     */
+    @GetMapping(value = "/members/{travelId}")
+    public ResponseEntity<MultipleSuccessApiResponse<TravelMemberRes>> getTravelMemberList(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long travelId
+    ) {
+        return ResponseUtil.successApiResponse(OK, "동행자 목록 조회에 성공했습니다.",
+                travelService.getTravelMemberList(principal.getMemberId(), travelId));
+    }
+
 
 }
