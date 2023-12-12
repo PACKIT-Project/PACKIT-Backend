@@ -1,4 +1,4 @@
-package site.packit.packit.domain.travel.entity;
+package site.packit.packit.domain.destination.entity;
 
 import jakarta.persistence.*;
 import lombok.AccessLevel;

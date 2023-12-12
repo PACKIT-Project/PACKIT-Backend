@@ -12,9 +12,9 @@ import site.packit.packit.domain.member.repository.MemberRepository;
 import site.packit.packit.domain.storage.entity.Storage;
 import site.packit.packit.domain.storage.repository.StorageRepository;
 import site.packit.packit.domain.travel.dto.*;
-import site.packit.packit.domain.travel.entity.Destination;
+import site.packit.packit.domain.destination.entity.Destination;
 import site.packit.packit.domain.travel.entity.Travel;
-import site.packit.packit.domain.travel.repository.DestinationRepository;
+import site.packit.packit.domain.destination.repository.DestinationRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 

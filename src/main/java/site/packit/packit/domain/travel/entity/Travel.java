@@ -6,6 +6,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.packit.packit.domain.destination.entity.Destination;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.global.audit.BaseEntity;
 
