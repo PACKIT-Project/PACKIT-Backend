@@ -174,12 +174,40 @@ public class TravelService {
     }
 
     /**
-     * 여행 나의 리스트 상세 조회
+     * 여행 리스트 상세 조회
      */
     @Transactional(readOnly = true)
     public TravelDetailRes getMyToDoList(Long memberId, Long travelId) {
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
+        validateTravelMemberExists(travel, member);
+
+        String formattedStartDate = formatLocalDateTime(travel.getStartDate());
+        String formattedEndDate = formatLocalDateTime(travel.getEndDate());
+        List<TravelCluster> travelClusters = clusterRepository.findByTravelAndMember(travel, member).stream()
+                .map(this::mapToTravelClusterList)
+                .sorted(Comparator.comparingInt(TravelCluster::order))
+                .collect(Collectors.toList());
+
+        return new TravelDetailRes(
+                travel.getId(),
+                travel.getTitle(),
+                calculateRemainingDays(travel.getEndDate()),
+                travel.getDestination().getCity(),
+                formattedStartDate,
+                formattedEndDate,
+                travelMemberRepository.countByTravel(travel),
+                travelClusters
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public TravelDetailRes getToDoList(Long myId, Long memberId, Long travelId) {
+        Member me = memberRepository.findByIdOrThrow(myId);
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+        validateTravelMemberExists(travel, me);
+        validateTravelMemberExists(travel, member);
 
         String formattedStartDate = formatLocalDateTime(travel.getStartDate());
         String formattedEndDate = formatLocalDateTime(travel.getEndDate());
