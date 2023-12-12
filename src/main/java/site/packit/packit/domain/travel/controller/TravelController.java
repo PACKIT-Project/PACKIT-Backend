@@ -40,12 +40,24 @@ public class TravelController {
     /**
      * 현재 동행자 수 & 초대코드 확인
      */
-    @GetMapping(value = "/invitation/{travelId}")
+    @GetMapping(value = "/invitations/{travelId}")
     public ResponseEntity<SingleSuccessApiResponse<TravelInviteRes>> getInvitationCode(
             @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long travelId
     ) {
         return ResponseUtil.successApiResponse(OK, "현재 동행자 수, 초대코드 확인에 성공했습니다.",
                 travelService.getInvitationCode(principal.getMemberId(), travelId));
     }
+
+    /**
+     * 동행자 추가 (초대코드 입력) API
+     */
+    @PostMapping(value = "/invitations")
+    public ResponseEntity<SingleSuccessApiResponse<Long>> invitationTravel(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @RequestParam String invitationCode
+    ){
+        return ResponseUtil.successApiResponse(OK, "여행 참여에 성공했습니다.",
+                travelService.invitationTravel(principal.getMemberId(), invitationCode));
+    }
+
 
 }

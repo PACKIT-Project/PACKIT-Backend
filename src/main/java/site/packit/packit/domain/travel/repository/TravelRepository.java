@@ -8,6 +8,7 @@ import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 import static site.packit.packit.domain.travel.exception.TravelErrorCode.DESTINATION_NOT_FOUND;
 import static site.packit.packit.domain.travel.exception.TravelErrorCode.TRAVEL_NOT_FOUND;
@@ -21,5 +22,7 @@ public interface TravelRepository
         return findById(travelId)
                 .orElseThrow(()-> new ResourceNotFoundException(TRAVEL_NOT_FOUND));
     }
+
+    Optional<Travel> findByInvitationCode(String invitationCode);
 
 }

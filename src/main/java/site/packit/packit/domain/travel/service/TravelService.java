@@ -14,11 +14,12 @@ import site.packit.packit.domain.travel.entity.TravelMember;
 import site.packit.packit.domain.travel.repository.TravelMemberRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
 import site.packit.packit.global.exception.ErrorCode;
+import site.packit.packit.global.exception.MaxParticipantsExceededException;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.security.SecureRandom;
 
-import static site.packit.packit.domain.travel.exception.TravelErrorCode.NOT_MEMBER_IN;
+import static site.packit.packit.domain.travel.exception.TravelErrorCode.*;
 
 
 @Service
@@ -85,13 +86,32 @@ public class TravelService {
         return new TravelInviteRes(peopleNum, invitationCode);
     }
 
+    /**
+     * 동행자 추가 (초대코드 입력) API
+     */
+    public Long invitationTravel(Long memberId, String invitationCode){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByInvitationCode(invitationCode)
+                .orElseThrow(() -> new ResourceNotFoundException(INVITATION_NOT_FOUND));
+        validateTravelMemberNotExists(travel, member);
+        if(travelMemberRepository.countByTravel(travel) >= 8){
+            throw new MaxParticipantsExceededException(MAX_PARTICIPANTS_EXCEEDED);
+        }
+        addMemberToTravel(travel, member);
+        return travel.getId();
+    }
+
     private void validateTravelMemberExists(Travel travel, Member member) {
         if (!travelMemberRepository.existsByTravelAndMember(travel, member)) {
             throw new ResourceNotFoundException(NOT_MEMBER_IN);
         }
     }
 
-
+    private void validateTravelMemberNotExists(Travel travel, Member member) {
+        if (travelMemberRepository.existsByTravelAndMember(travel, member)) {
+            throw new ResourceNotFoundException(EXISTS_MEMBER_IN);
+        }
+    }
 
 
     private String generateRandomCode() {
