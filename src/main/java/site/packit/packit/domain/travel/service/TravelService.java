@@ -11,9 +11,10 @@ import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.repository.MemberRepository;
 import site.packit.packit.domain.storage.entity.Storage;
 import site.packit.packit.domain.storage.repository.StorageRepository;
-import site.packit.packit.domain.travel.constant.DestinationType;
 import site.packit.packit.domain.travel.dto.*;
+import site.packit.packit.domain.travel.entity.Destination;
 import site.packit.packit.domain.travel.entity.Travel;
+import site.packit.packit.domain.travel.repository.DestinationRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
@@ -39,12 +40,15 @@ public class TravelService {
 
     private final StorageRepository storageRepository;
 
-    public TravelService(MemberRepository memberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CheckListRepository checkListRepository, StorageRepository storageRepository) {
+    private final DestinationRepository destinationRepository;
+
+    public TravelService(MemberRepository memberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CheckListRepository checkListRepository, StorageRepository storageRepository, DestinationRepository destinationRepository) {
         this.memberRepository = memberRepository;
         this.travelRepository = travelRepository;
         this.itemRepository = itemRepository;
         this.checkListRepository = checkListRepository;
         this.storageRepository = storageRepository;
+        this.destinationRepository = destinationRepository;
     }
 
 
@@ -58,10 +62,11 @@ public class TravelService {
         }
 
         Member member = memberRepository.findById(memberId).get();
+        Destination destination = destinationRepository.findByIdOrThrow(createTravelRequest.destinationId());
 
         Travel createTravel = Travel.builder()
                 .title(createTravelRequest.title())
-                .destinationType(createTravelRequest.destinationType())
+                .destination(destination)
                 .startDate(createTravelRequest.startDate())
                 .endDate(createTravelRequest.endDate())
                 .member(member)
@@ -69,11 +74,12 @@ public class TravelService {
 
         travelRepository.save(createTravel);
 
-        if (createTravelRequest.destinationType() == DestinationType.DOMESTIC) {
-            createDomesticDefaultChecklistsAndItems(createTravel);
-        } else if (createTravelRequest.destinationType() == DestinationType.OVERSEAS) {
-            createOverseasDefaultChecklistsAndItems(createTravel);
-        }
+        // TODO: 과거 버전의 해외&국내 기본 체크리스트 생성 코드
+//        if (createTravelRequest.destinationType() == DestinationType.DOMESTIC) {
+//            createDomesticDefaultChecklistsAndItems(createTravel);
+//        } else if (createTravelRequest.destinationType() == DestinationType.OVERSEAS) {
+//            createOverseasDefaultChecklistsAndItems(createTravel);
+//        }
         return createTravel.getId();
     }
 
@@ -178,7 +184,7 @@ public class TravelService {
                 travel.getId(),
                 travel.getTitle(),
                 calculateDDay(travel.getStartDate()),
-                travel.getDestinationType(),
+                travel.getDestination().getCity(),
                 travel.getStartDate(),
                 travel.getEndDate(),
                 isAddedToStorage,
@@ -225,7 +231,7 @@ public class TravelService {
                 travel.getId(),
                 travel.getTitle(),
                 calculateDDay(travel.getStartDate()),
-                travel.getDestinationType(),
+                travel.getDestination().getCity(),
                 travel.getStartDate(),
                 travel.getEndDate(),
                 checkListDtoList,
@@ -243,7 +249,7 @@ public class TravelService {
         // 복사해서 새로운 여행 생성
         Travel newTravel = Travel.builder()
                 .title(bringTravelRequest.title())
-                .destinationType(originalTravel.getDestinationType())
+                .destination(originalTravel.getDestination())
                 .startDate(bringTravelRequest.startDate())
                 .endDate(bringTravelRequest.endDate())
                 .member(originalTravel.getMember())
