@@ -13,8 +13,12 @@ import site.packit.packit.domain.destination.repository.DestinationRepository;
 import site.packit.packit.domain.travel.entity.TravelMember;
 import site.packit.packit.domain.travel.repository.TravelMemberRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
+import site.packit.packit.global.exception.ErrorCode;
+import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.security.SecureRandom;
+
+import static site.packit.packit.domain.travel.exception.TravelErrorCode.NOT_MEMBER_IN;
 
 
 @Service
@@ -66,6 +70,29 @@ public class TravelService {
 
         return createTravel.getId();
     }
+
+    /**
+     * 현재 동행자 수 & 초대코드 확인
+     */
+    public TravelInviteRes getInvitationCode(Long memberId, Long travelId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+        validateTravelMemberExists(travel, member);
+
+        String invitationCode = travel.getInvitationCode();
+        long peopleNum = travelMemberRepository.countByTravel(travel);
+        if(peopleNum>=8){ invitationCode = "최대 인원에 도달하였습니다."; }
+        return new TravelInviteRes(peopleNum, invitationCode);
+    }
+
+    private void validateTravelMemberExists(Travel travel, Member member) {
+        if (!travelMemberRepository.existsByTravelAndMember(travel, member)) {
+            throw new ResourceNotFoundException(NOT_MEMBER_IN);
+        }
+    }
+
+
+
 
     private String generateRandomCode() {
         SecureRandom random = new SecureRandom();

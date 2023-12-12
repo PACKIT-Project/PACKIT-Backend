@@ -37,4 +37,15 @@ public class TravelController {
                 travelService.createNewTravel(principal.getMemberId(), createTravelReq));
     }
 
+    /**
+     * 현재 동행자 수 & 초대코드 확인
+     */
+    @GetMapping(value = "/invitation/{travelId}")
+    public ResponseEntity<SingleSuccessApiResponse<TravelInviteRes>> getInvitationCode(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long travelId
+    ) {
+        return ResponseUtil.successApiResponse(OK, "현재 동행자 수, 초대코드 확인에 성공했습니다.",
+                travelService.getInvitationCode(principal.getMemberId(), travelId));
+    }
+
 }
