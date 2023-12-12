@@ -9,10 +9,12 @@ import org.springframework.web.bind.annotation.RestController;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.destination.dto.DestinationDto;
 import site.packit.packit.domain.destination.service.DestinationService;
-import site.packit.packit.domain.travel.dto.TravelListDto;
 import site.packit.packit.global.response.success.MultipleSuccessApiResponse;
+import site.packit.packit.global.response.util.ResponseUtil;
 
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.OK;
 
 @RequestMapping("/api/destination")
 @RestController
@@ -30,9 +32,8 @@ public class DestinationController {
     public ResponseEntity<MultipleSuccessApiResponse<DestinationDto>> searchDestination(
             @AuthenticationPrincipal CustomUserPrincipal principal, @RequestParam String keyword
     ) {
-        return ResponseEntity.ok(MultipleSuccessApiResponse.of(
-                "여행지 검색에 성공했습니다.", destinationService.searchDestination(principal.getMemberId(), keyword)
-        ));
+        return ResponseUtil.successApiResponse(OK, "여행지 검색에 성공했습니다.",
+                destinationService.searchDestination(principal.getMemberId(), keyword));
     }
 
 }
