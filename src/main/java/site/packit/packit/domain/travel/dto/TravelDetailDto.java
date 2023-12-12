@@ -1,7 +1,5 @@
 package site.packit.packit.domain.travel.dto;
 
-import site.packit.packit.domain.travel.constant.DestinationType;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +10,7 @@ public record TravelDetailDto(
 
         String dDay,
 
-        DestinationType destinationType,
+        String destination,
 
         LocalDateTime startDate,
 

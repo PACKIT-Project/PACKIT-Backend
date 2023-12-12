@@ -6,8 +6,8 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.packit.packit.domain.destination.entity.Destination;
 import site.packit.packit.domain.member.entity.Member;
-import site.packit.packit.domain.travel.constant.DestinationType;
 import site.packit.packit.global.audit.BaseEntity;
 
 import java.time.LocalDateTime;
@@ -26,9 +26,9 @@ public class Travel
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 50, nullable = false)
-    private DestinationType destinationType;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "destination_id", nullable = false)
+    private Destination destination;
 
     @Column(nullable = false)
     private LocalDateTime startDate;
@@ -44,13 +44,13 @@ public class Travel
     @Builder
     public Travel(
             String title,
-            DestinationType destinationType,
+            Destination destination,
             LocalDateTime startDate,
             LocalDateTime endDate,
             Member member
     ) {
         this.title = title;
-        this.destinationType = destinationType;
+        this.destination = destination;
         this.startDate = startDate;
         this.endDate = endDate;
         this.member = member;
