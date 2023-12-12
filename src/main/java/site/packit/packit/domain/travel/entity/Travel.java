@@ -47,23 +47,20 @@ public class Travel
     @JsonIgnore
     private Member owner;
 
-    @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<TravelMember> travelMembers = new HashSet<>();
-
     @Builder
     public Travel(
             String title,
             Destination destination,
             LocalDateTime startDate,
             LocalDateTime endDate,
-            Member member,
+            Member owner,
             String invitationCode
     ) {
         this.title = title;
         this.destination = destination;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.owner = member;
+        this.owner = owner;
         this.invitationCode = invitationCode;
     }
 
@@ -75,9 +72,5 @@ public class Travel
         this.title = title;
         this.startDate = startDate;
         this.endDate = endDate;
-    }
-
-    public Set<TravelMember> getTravelMembers() {
-        return Collections.unmodifiableSet(travelMembers);
     }
 }
