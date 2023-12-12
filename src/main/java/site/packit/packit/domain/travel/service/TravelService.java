@@ -21,6 +21,10 @@ import site.packit.packit.global.exception.MaxParticipantsExceededException;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.security.SecureRandom;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -82,6 +86,7 @@ public class TravelService {
     /**
      * 현재 동행자 수 & 초대코드 확인
      */
+    @Transactional(readOnly = true)
     public TravelInviteRes getInvitationCode(Long memberId, Long travelId){
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
@@ -94,7 +99,7 @@ public class TravelService {
     }
 
     /**
-     * 동행자 추가 (초대코드 입력) API
+     * 동행자 추가 (초대코드 입력)
      */
     public Long invitationTravel(Long memberId, String invitationCode){
         Member member = memberRepository.findByIdOrThrow(memberId);
@@ -108,6 +113,10 @@ public class TravelService {
         return travel.getId();
     }
 
+    /**
+     * 동행자 목록 조회
+     */
+    @Transactional(readOnly = true)
     public List<TravelMemberRes> getTravelMemberList(Long memberId, Long travelId){
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
@@ -138,6 +147,49 @@ public class TravelService {
                 .collect(Collectors.toList());
         otherProfiles.add(0, myProfile);
         return otherProfiles;
+    }
+
+    private final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy.MM.dd");
+
+    /**
+     * 예정된 여행 목록 조회
+     */
+    @Transactional(readOnly = true)
+    public List<TravelListRes> getMyTravelUpcoming(Long memberId) {
+        List<TravelMember> travelMembers = travelMemberRepository.findByMemberId(memberId);
+
+        return travelMembers.stream()
+                .map(this::mapToTravelListRes)
+                .sorted(Comparator.comparingInt(travelListRes -> Integer.parseInt(travelListRes.dDay())))
+                .collect(Collectors.toList());
+    }
+
+    private TravelListRes mapToTravelListRes(TravelMember travelMember) {
+        Travel travel = travelMember.getTravel();
+        long memberNum = travelMemberRepository.countByTravel(travel);
+        int remainingDays = calculateRemainingDays(travel.getStartDate());
+
+        String formattedStartDate = formatLocalDateTime(travel.getStartDate());
+        String formattedEndDate = formatLocalDateTime(travel.getEndDate());
+
+        return new TravelListRes(
+                travel.getId(),
+                travel.getTitle(),
+                travel.getDestination().getCity(),
+                formattedStartDate,
+                formattedEndDate,
+                String.valueOf(remainingDays),
+                memberNum
+        );
+    }
+
+    private String formatLocalDateTime(LocalDateTime localDateTime) {
+        return localDateTime.format(dateFormatter);
+    }
+
+    private int calculateRemainingDays(LocalDateTime startDate) {
+        LocalDateTime now = LocalDateTime.now();
+        return (int) now.until(startDate, ChronoUnit.DAYS);
     }
 
     private int calculateCheckedNum(Travel travel, Member member) {

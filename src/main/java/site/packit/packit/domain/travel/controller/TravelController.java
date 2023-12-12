@@ -49,7 +49,7 @@ public class TravelController {
     }
 
     /**
-     * 동행자 추가 (초대코드 입력) API
+     * 동행자 추가 (초대코드 입력)
      */
     @PostMapping(value = "/invitations")
     public ResponseEntity<SingleSuccessApiResponse<Long>> invitationTravel(
@@ -60,15 +60,27 @@ public class TravelController {
     }
 
     /**
-     * 동행자 목록 조회 API
+     * 동행자 목록 조회
      */
     @GetMapping(value = "/members/{travelId}")
     public ResponseEntity<MultipleSuccessApiResponse<TravelMemberRes>> getTravelMemberList(
             @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long travelId
-    ) {
+    ){
         return ResponseUtil.successApiResponse(OK, "동행자 목록 조회에 성공했습니다.",
                 travelService.getTravelMemberList(principal.getMemberId(), travelId));
     }
+
+    /**
+     * 예정된 여행 목록 조회
+     */
+    @GetMapping(value = "/upcoming")
+    public ResponseEntity<MultipleSuccessApiResponse<TravelListRes>> getMyTravelUpcoming(
+            @AuthenticationPrincipal CustomUserPrincipal principal
+    ){
+        return ResponseUtil.successApiResponse(OK, "예정된 여행 목록 조회에 성공했습니다.",
+                travelService.getMyTravelUpcoming(principal.getMemberId()));
+    }
+
 
 
 }
