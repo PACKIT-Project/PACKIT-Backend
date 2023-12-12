@@ -2,7 +2,11 @@ package site.packit.packit.domain.travel.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.category.repository.CategoryRepository;
+import site.packit.packit.domain.cluster.entity.Cluster;
+import site.packit.packit.domain.cluster.repository.ClusterRepository;
+import site.packit.packit.domain.item.entity.Item;
 import site.packit.packit.domain.item.repository.ItemRepository;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.repository.MemberRepository;
@@ -13,7 +17,6 @@ import site.packit.packit.domain.destination.repository.DestinationRepository;
 import site.packit.packit.domain.travel.entity.TravelMember;
 import site.packit.packit.domain.travel.repository.TravelMemberRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
-import site.packit.packit.global.exception.ErrorCode;
 import site.packit.packit.global.exception.MaxParticipantsExceededException;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
@@ -33,15 +36,17 @@ public class TravelService {
     private final TravelRepository travelRepository;
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
+    private final ClusterRepository clusterRepository;
 
     private final DestinationRepository destinationRepository;
 
-    public TravelService(MemberRepository memberRepository, TravelMemberRepository travelMemberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CategoryRepository categoryRepository, DestinationRepository destinationRepository) {
+    public TravelService(MemberRepository memberRepository, TravelMemberRepository travelMemberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CategoryRepository categoryRepository, ClusterRepository clusterRepository, DestinationRepository destinationRepository) {
         this.memberRepository = memberRepository;
         this.travelMemberRepository = travelMemberRepository;
         this.travelRepository = travelRepository;
         this.itemRepository = itemRepository;
         this.categoryRepository = categoryRepository;
+        this.clusterRepository = clusterRepository;
         this.destinationRepository = destinationRepository;
     }
 
@@ -116,8 +121,8 @@ public class TravelService {
                         tm.getMember().getId(),
                         "me",
                         tm.getMember().getProfileImageUrl(),
-                        calculateCheckedNum(tm),
-                        calculateUncheckedNum(tm)
+                        calculateCheckedNum(tm.getTravel(), tm.getMember()),
+                        calculateUncheckedNum(tm.getTravel(), tm.getMember())
                 ))
                 .orElseThrow(() -> new ResourceNotFoundException(NOT_MEMBER_IN));
 
@@ -127,23 +132,42 @@ public class TravelService {
                         tm.getMember().getId(),
                         tm.getMember().getNickname(),
                         tm.getMember().getProfileImageUrl(),
-                        calculateCheckedNum(tm),
-                        calculateUncheckedNum(tm)
+                        calculateCheckedNum(tm.getTravel(), tm.getMember()),
+                        calculateUncheckedNum(tm.getTravel(), tm.getMember())
                 ))
                 .collect(Collectors.toList());
         otherProfiles.add(0, myProfile);
         return otherProfiles;
     }
 
-    private int calculateCheckedNum(TravelMember travelMember) {
-        // TODO: 해당 TravelMember의 체크된 항목 수 계산 로직
-        return 0;
+    private int calculateCheckedNum(Travel travel, Member member) {
+        int checkedNum = 0;
+        for (Cluster cluster : clusterRepository.findByTravelAndMember(travel, member)) {
+            for (Category category : categoryRepository.findByCluster(cluster)) {
+                for (Item item : itemRepository.findByCategory(category)) {
+                    if (item.isChecked()) {
+                        checkedNum++;
+                    }
+                }
+            }
+        }
+        return checkedNum;
     }
 
-    private int calculateUncheckedNum(TravelMember travelMember) {
-        // TODO: 해당 TravelMember의 체크되지 않은 항목 수 계산 로직
-        return 0;
+    private int calculateUncheckedNum(Travel travel, Member member) {
+        int uncheckedNum = 0;
+        for (Cluster cluster : clusterRepository.findByTravelAndMember(travel, member)) {
+            for (Category category : categoryRepository.findByCluster(cluster)) {
+                for (Item item : itemRepository.findByCategory(category)) {
+                    if (!item.isChecked()) {
+                        uncheckedNum++;
+                    }
+                }
+            }
+        }
+        return uncheckedNum;
     }
+
 
     private void validateTravelMemberExists(Travel travel, Member member) {
         if (!travelMemberRepository.existsByTravelAndMember(travel, member)) {
