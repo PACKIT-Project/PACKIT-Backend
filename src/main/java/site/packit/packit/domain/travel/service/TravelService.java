@@ -2,7 +2,11 @@ package site.packit.packit.domain.travel.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.category.repository.CategoryRepository;
+import site.packit.packit.domain.cluster.entity.Cluster;
+import site.packit.packit.domain.cluster.repository.ClusterRepository;
+import site.packit.packit.domain.item.entity.Item;
 import site.packit.packit.domain.item.repository.ItemRepository;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.repository.MemberRepository;
@@ -13,11 +17,12 @@ import site.packit.packit.domain.destination.repository.DestinationRepository;
 import site.packit.packit.domain.travel.entity.TravelMember;
 import site.packit.packit.domain.travel.repository.TravelMemberRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
-import site.packit.packit.global.exception.ErrorCode;
 import site.packit.packit.global.exception.MaxParticipantsExceededException;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.security.SecureRandom;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static site.packit.packit.domain.travel.exception.TravelErrorCode.*;
 
@@ -31,15 +36,17 @@ public class TravelService {
     private final TravelRepository travelRepository;
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
+    private final ClusterRepository clusterRepository;
 
     private final DestinationRepository destinationRepository;
 
-    public TravelService(MemberRepository memberRepository, TravelMemberRepository travelMemberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CategoryRepository categoryRepository, DestinationRepository destinationRepository) {
+    public TravelService(MemberRepository memberRepository, TravelMemberRepository travelMemberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CategoryRepository categoryRepository, ClusterRepository clusterRepository, DestinationRepository destinationRepository) {
         this.memberRepository = memberRepository;
         this.travelMemberRepository = travelMemberRepository;
         this.travelRepository = travelRepository;
         this.itemRepository = itemRepository;
         this.categoryRepository = categoryRepository;
+        this.clusterRepository = clusterRepository;
         this.destinationRepository = destinationRepository;
     }
 
@@ -100,6 +107,67 @@ public class TravelService {
         addMemberToTravel(travel, member);
         return travel.getId();
     }
+
+    public List<TravelMemberRes> getTravelMemberList(Long memberId, Long travelId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+        List<TravelMember> travelMembers = travelMemberRepository.findByTravel(travel);
+
+        // 자신의 프로필을 찾아서 me로 표시
+        TravelMemberRes myProfile = travelMembers.stream()
+                .filter(tm -> tm.getMember().equals(member))
+                .findFirst()
+                .map(tm -> new TravelMemberRes(
+                        tm.getMember().getId(),
+                        "me",
+                        tm.getMember().getProfileImageUrl(),
+                        calculateCheckedNum(tm.getTravel(), tm.getMember()),
+                        calculateUncheckedNum(tm.getTravel(), tm.getMember())
+                ))
+                .orElseThrow(() -> new ResourceNotFoundException(NOT_MEMBER_IN));
+
+        List<TravelMemberRes> otherProfiles = travelMembers.stream()
+                .filter(tm -> !tm.getMember().equals(member))
+                .map(tm -> new TravelMemberRes(
+                        tm.getMember().getId(),
+                        tm.getMember().getNickname(),
+                        tm.getMember().getProfileImageUrl(),
+                        calculateCheckedNum(tm.getTravel(), tm.getMember()),
+                        calculateUncheckedNum(tm.getTravel(), tm.getMember())
+                ))
+                .collect(Collectors.toList());
+        otherProfiles.add(0, myProfile);
+        return otherProfiles;
+    }
+
+    private int calculateCheckedNum(Travel travel, Member member) {
+        int checkedNum = 0;
+        for (Cluster cluster : clusterRepository.findByTravelAndMember(travel, member)) {
+            for (Category category : categoryRepository.findByCluster(cluster)) {
+                for (Item item : itemRepository.findByCategory(category)) {
+                    if (item.isChecked()) {
+                        checkedNum++;
+                    }
+                }
+            }
+        }
+        return checkedNum;
+    }
+
+    private int calculateUncheckedNum(Travel travel, Member member) {
+        int uncheckedNum = 0;
+        for (Cluster cluster : clusterRepository.findByTravelAndMember(travel, member)) {
+            for (Category category : categoryRepository.findByCluster(cluster)) {
+                for (Item item : itemRepository.findByCategory(category)) {
+                    if (!item.isChecked()) {
+                        uncheckedNum++;
+                    }
+                }
+            }
+        }
+        return uncheckedNum;
+    }
+
 
     private void validateTravelMemberExists(Travel travel, Member member) {
         if (!travelMemberRepository.existsByTravelAndMember(travel, member)) {

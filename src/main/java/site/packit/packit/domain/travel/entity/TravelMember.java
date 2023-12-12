@@ -1,10 +1,12 @@
 package site.packit.packit.domain.travel.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.packit.packit.domain.cluster.entity.Cluster;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.global.audit.BaseEntity;
 import site.packit.packit.global.audit.BaseTimeEntity;
