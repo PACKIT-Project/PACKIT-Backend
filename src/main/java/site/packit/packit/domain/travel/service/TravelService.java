@@ -173,6 +173,71 @@ public class TravelService {
         return travelListResList;
     }
 
+    /**
+     * 여행 나의 리스트 상세 조회
+     */
+    @Transactional(readOnly = true)
+    public TravelDetailRes getMyToDoList(Long memberId, Long travelId) {
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+
+        String formattedStartDate = formatLocalDateTime(travel.getStartDate());
+        String formattedEndDate = formatLocalDateTime(travel.getEndDate());
+        List<TravelCluster> travelClusters = clusterRepository.findByTravelAndMember(travel, member).stream()
+                .map(this::mapToTravelClusterList)
+                .sorted(Comparator.comparingInt(TravelCluster::order))
+                .collect(Collectors.toList());
+
+        return new TravelDetailRes(
+                travel.getId(),
+                travel.getTitle(),
+                calculateRemainingDays(travel.getEndDate()),
+                travel.getDestination().getCity(),
+                formattedStartDate,
+                formattedEndDate,
+                travelMemberRepository.countByTravel(travel),
+                travelClusters
+        );
+    }
+
+    private TravelCluster mapToTravelClusterList(Cluster cluster) {
+        List<TravelCategory> travelCategories = categoryRepository.findByCluster(cluster).stream()
+                .map(this::mapToTravelCategoryList)
+                .sorted(Comparator.comparingInt(TravelCategory::order))
+                .collect(Collectors.toList());
+
+        return new TravelCluster(
+                cluster.getId(),
+                cluster.getTitle(),
+                cluster.getListOrder(),
+                travelCategories
+        );
+    }
+
+    private TravelCategory mapToTravelCategoryList(Category category) {
+        List<TravelItem> travelItems = itemRepository.findByCategory(category).stream()
+                .map(this::mapToTravelItemList)
+                .sorted(Comparator.comparingInt(TravelItem::order))
+                .collect(Collectors.toList());
+
+        return new TravelCategory(
+                category.getId(),
+                category.getTitle(),
+                category.getListOrder(),
+                travelItems
+        );
+    }
+
+    private TravelItem mapToTravelItemList(Item item) {
+        return new TravelItem(
+                item.getId(),
+                item.getTitle(),
+                item.getListOrder(),
+                item.isChecked()
+        );
+    }
+
+
     private List<TravelListRes> filterUpcomingTravels(List<TravelListRes> travelListResList) {
         return travelListResList.stream()
                 .filter(travelListRes -> Integer.parseInt(travelListRes.dDay()) > 0)
@@ -212,10 +277,6 @@ public class TravelService {
         LocalDateTime now = LocalDateTime.now();
         return (int) ChronoUnit.DAYS.between(now, endDate);
     }
-
-
-
-
 
     private int calculateCheckedNum(Travel travel, Member member) {
         int checkedNum = 0;

@@ -93,5 +93,15 @@ public class TravelController {
     }
 
 
+    /**
+     * 여행 나의 리스트 상세 조회
+     */
+    @GetMapping(value = "/myList/{travelId}")
+    public ResponseEntity<SingleSuccessApiResponse<TravelDetailRes>> getMyToDoList(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long travelId
+    ){
+        return ResponseUtil.successApiResponse(OK, "나의 체크리스트 조회에 성공했습니다.",
+                travelService.getMyToDoList(principal.getMemberId(), travelId));
+    }
 
 }

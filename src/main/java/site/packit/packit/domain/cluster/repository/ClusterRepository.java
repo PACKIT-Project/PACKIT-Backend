@@ -9,6 +9,8 @@ import java.util.List;
 
 public interface ClusterRepository extends JpaRepository<Cluster, Long> {
     List<Cluster> findByTravelAndMember(Travel travel, Member member);
+    List<Cluster> findByTravel(Travel travel);
+
 
 }
 
