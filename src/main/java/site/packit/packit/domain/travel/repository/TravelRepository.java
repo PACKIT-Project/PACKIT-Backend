@@ -13,13 +13,5 @@ import static site.packit.packit.domain.travel.exception.TravelErrorCode.DESTINA
 public interface TravelRepository
         extends JpaRepository<Travel, Long> {
 
-    List<Travel> findByStartDateAfterAndMemberIdOrderByStartDateAsc(LocalDateTime startDate, Long memberId);
-
-    List<Travel> findByEndDateBeforeAndMemberIdOrderByEndDateDesc(LocalDateTime endDate, Long memberId);
-
-    List<Travel> findByStartDateBeforeAndMemberIdOrderByStartDateDesc(
-            LocalDateTime startDate, Long memberId
-    );
-  
-    int countAllByMember_Id(Long memberId);
+    boolean existsByInvitationCode(String invitationCode);
 }

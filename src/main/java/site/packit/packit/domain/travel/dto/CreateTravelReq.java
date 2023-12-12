@@ -2,7 +2,7 @@ package site.packit.packit.domain.travel.dto;
 
 import java.time.LocalDateTime;
 
-public record CreateTravelRequest(
+public record CreateTravelReq(
 
         String title,
 

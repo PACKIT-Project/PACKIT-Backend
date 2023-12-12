@@ -11,6 +11,9 @@ import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.global.audit.BaseEntity;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -36,10 +39,16 @@ public class Travel
     @Column(nullable = false)
     private LocalDateTime endDate;
 
+    @Column(nullable = false)
+    private String invitationCode;
+
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "member_id")
+    @JoinColumn(name = "owner_id", nullable = false)
     @JsonIgnore
-    private Member member;
+    private Member owner;
+
+    @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<TravelMember> travelMembers = new HashSet<>();
 
     @Builder
     public Travel(
@@ -47,13 +56,15 @@ public class Travel
             Destination destination,
             LocalDateTime startDate,
             LocalDateTime endDate,
-            Member member
+            Member member,
+            String invitationCode
     ) {
         this.title = title;
         this.destination = destination;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.member = member;
+        this.owner = member;
+        this.invitationCode = invitationCode;
     }
 
     public void updateTravel(
@@ -64,5 +75,9 @@ public class Travel
         this.title = title;
         this.startDate = startDate;
         this.endDate = endDate;
+    }
+
+    public Set<TravelMember> getTravelMembers() {
+        return Collections.unmodifiableSet(travelMembers);
     }
 }
