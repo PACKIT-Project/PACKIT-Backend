@@ -2,11 +2,13 @@ package site.packit.packit.domain.cluster.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.category.repository.CategoryRepository;
 import site.packit.packit.domain.cluster.dto.ClusterOrderReq;
 import site.packit.packit.domain.cluster.dto.CreateClusterReq;
 import site.packit.packit.domain.cluster.entity.Cluster;
 import site.packit.packit.domain.cluster.repository.ClusterRepository;
+import site.packit.packit.domain.item.entity.Item;
 import site.packit.packit.domain.item.repository.ItemRepository;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.repository.MemberRepository;
@@ -17,6 +19,7 @@ import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.util.List;
 
+import static site.packit.packit.domain.cluster.execption.ClusterErrorCode.CLUSTER_NOT_EDIT;
 import static site.packit.packit.domain.cluster.execption.ClusterErrorCode.CLUSTER_NOT_FOUND;
 import static site.packit.packit.domain.travel.exception.TravelErrorCode.NOT_MEMBER_IN;
 
@@ -58,6 +61,7 @@ public class ClusterService {
                 .build();
 
         Cluster savedCluster = clusterRepository.save(newCluster);
+        travel.addCluster(savedCluster);
         return savedCluster.getId();
     }
 
@@ -86,7 +90,20 @@ public class ClusterService {
         }
     }
 
-
+    public void deleteCluster(Long memberId, Long clusterId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Cluster cluster = clusterRepository.findByIdOrThrow(clusterId);
+        if (!cluster.getMember().equals(member)) {
+            throw new ResourceNotFoundException(CLUSTER_NOT_EDIT);
+        }
+        List<Category> categories = cluster.getCategories();
+        for (Category category : categories) {
+            List<Item> items = category.getItems();
+            itemRepository.deleteAll(items);
+            categoryRepository.delete(category);
+        }
+        clusterRepository.delete(cluster);
+    }
 
     private void validateTravelMemberExists(Travel travel, Member member) {
         if (!travelMemberRepository.existsByTravelAndMember(travel, member)) {

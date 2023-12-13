@@ -6,7 +6,11 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.packit.packit.domain.cluster.entity.Cluster;
+import site.packit.packit.domain.item.entity.Item;
 import site.packit.packit.global.audit.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,9 +28,16 @@ public class Category extends BaseEntity {
     @Column(nullable = false)
     private int listOrder;
 
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Item> items = new ArrayList<>();
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cluster_id")
     @JsonIgnore
     private Cluster cluster;
+
+    public void addItem(Item item) {
+        this.items.add(item);
+    }
 
 }

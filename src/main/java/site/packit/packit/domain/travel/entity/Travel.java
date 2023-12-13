@@ -6,14 +6,15 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.packit.packit.domain.category.entity.Category;
+import site.packit.packit.domain.cluster.entity.Cluster;
 import site.packit.packit.domain.destination.entity.Destination;
+import site.packit.packit.domain.item.entity.Item;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.global.audit.BaseEntity;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -41,6 +42,9 @@ public class Travel
 
     @Column(nullable = false)
     private String invitationCode;
+
+    @OneToMany(mappedBy = "travel", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Cluster> clusters = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_id", nullable = false)
@@ -73,4 +77,9 @@ public class Travel
         this.startDate = startDate;
         this.endDate = endDate;
     }
+
+    public void addCluster(Cluster cluster) {
+        this.clusters.add(cluster);
+    }
+
 }

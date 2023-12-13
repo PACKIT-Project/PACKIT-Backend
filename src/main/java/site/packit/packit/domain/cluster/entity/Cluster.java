@@ -6,9 +6,13 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.travel.entity.Travel;
 import site.packit.packit.global.audit.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -25,6 +29,9 @@ public class Cluster extends BaseEntity {
 
     @Column(nullable = false)
     private int listOrder;
+
+    @OneToMany(mappedBy = "cluster", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Category> categories = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "travel_id")
@@ -50,6 +57,9 @@ public class Cluster extends BaseEntity {
 
     public void setListOrder(Integer listOrder) {
         this.listOrder = listOrder;
+    }
+    public void addCategory(Category category) {
+        this.categories.add(category);
     }
 
 }

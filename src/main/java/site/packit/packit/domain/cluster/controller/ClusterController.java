@@ -46,4 +46,16 @@ public class ClusterController {
         clusterService.updateClusterOrder(principal.getMemberId(), clusterOrderReq);
         return ResponseUtil.successApiResponse(OK, "할 일 그룹 순서가 변경되었습니다.");
     }
+
+    /**
+     * 할 일 그룹 삭제
+     */
+    @DeleteMapping("/travels/clusters/{clusterId}")
+    public ResponseEntity<SuccessApiResponse> deleteCluster(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long clusterId
+    ) {
+        clusterService.deleteCluster(principal.getMemberId(), clusterId);
+        return ResponseUtil.successApiResponse(OK, "할 일 그룹이 삭제되었습니다.");
+    }
+
 }
