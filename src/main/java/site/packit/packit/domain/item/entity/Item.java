@@ -24,7 +24,7 @@ public class Item
     private String title;
 
     @Column(nullable = false)
-    private Integer listOrder;
+    private int listOrder;
 
     @Column(columnDefinition = "TINYINT(1)")
     private boolean isChecked;

@@ -3,11 +3,16 @@ package site.packit.packit.domain.cluster.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.travel.entity.Travel;
 import site.packit.packit.global.audit.BaseEntity;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -23,7 +28,10 @@ public class Cluster extends BaseEntity {
     private String title;
 
     @Column(nullable = false)
-    private Integer listOrder;
+    private int listOrder;
+
+    @OneToMany(mappedBy = "cluster", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Category> categories = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "travel_id")
@@ -33,5 +41,25 @@ public class Cluster extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @Builder
+    public Cluster(
+            String title,
+            int listOrder,
+            Travel travel,
+            Member member
+    ){
+        this.title = title;
+        this.listOrder = listOrder;
+        this.travel = travel;
+        this.member = member;
+    }
+
+    public void setListOrder(Integer listOrder) {
+        this.listOrder = listOrder;
+    }
+    public void addCategory(Category category) {
+        this.categories.add(category);
+    }
 
 }
