@@ -3,6 +3,7 @@ package site.packit.packit.domain.cluster.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.packit.packit.domain.member.entity.Member;
@@ -23,7 +24,7 @@ public class Cluster extends BaseEntity {
     private String title;
 
     @Column(nullable = false)
-    private Integer listOrder;
+    private int listOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "travel_id")
@@ -33,5 +34,18 @@ public class Cluster extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "member_id")
     private Member member;
+
+    @Builder
+    public Cluster(
+            String title,
+            int listOrder,
+            Travel travel,
+            Member member
+    ){
+        this.title = title;
+        this.listOrder = listOrder;
+        this.travel = travel;
+        this.member = member;
+    }
 
 }

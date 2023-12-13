@@ -22,7 +22,7 @@ public class Category extends BaseEntity {
     private String title;
 
     @Column(nullable = false)
-    private Integer listOrder;
+    private int listOrder;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cluster_id")
