@@ -2,15 +2,15 @@ package site.packit.packit.domain.cluster.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
+import site.packit.packit.domain.cluster.dto.ClusterOrderReq;
 import site.packit.packit.domain.cluster.dto.CreateClusterReq;
 import site.packit.packit.domain.cluster.service.ClusterService;
+import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.travel.dto.CreateTravelReq;
 import site.packit.packit.global.response.success.SingleSuccessApiResponse;
+import site.packit.packit.global.response.success.SuccessApiResponse;
 import site.packit.packit.global.response.util.ResponseUtil;
 
 import static org.springframework.http.HttpStatus.OK;
@@ -36,5 +36,14 @@ public class ClusterController {
                 clusterService.createNewCluster(principal.getMemberId(), createClusterReq));
     }
 
-
+    /**
+     * 할 일 그룹 순서 변경
+     */
+    @PatchMapping("/travels/clusters/reorder")
+    public ResponseEntity<SuccessApiResponse> updateClusterOrder(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @RequestBody ClusterOrderReq clusterOrderReq
+    ) {
+        clusterService.updateClusterOrder(principal.getMemberId(), clusterOrderReq);
+        return ResponseUtil.successApiResponse(OK, "할 일 그룹 순서가 변경되었습니다.");
+    }
 }

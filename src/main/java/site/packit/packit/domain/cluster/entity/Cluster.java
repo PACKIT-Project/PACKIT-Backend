@@ -48,4 +48,8 @@ public class Cluster extends BaseEntity {
         this.member = member;
     }
 
+    public void setListOrder(Integer listOrder) {
+        this.listOrder = listOrder;
+    }
+
 }

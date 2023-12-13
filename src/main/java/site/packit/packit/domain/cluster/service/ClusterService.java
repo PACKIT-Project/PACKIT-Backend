@@ -1,7 +1,9 @@
 package site.packit.packit.domain.cluster.service;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import site.packit.packit.domain.category.repository.CategoryRepository;
+import site.packit.packit.domain.cluster.dto.ClusterOrderReq;
 import site.packit.packit.domain.cluster.dto.CreateClusterReq;
 import site.packit.packit.domain.cluster.entity.Cluster;
 import site.packit.packit.domain.cluster.repository.ClusterRepository;
@@ -13,9 +15,13 @@ import site.packit.packit.domain.travel.repository.TravelMemberRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
+import java.util.List;
+
+import static site.packit.packit.domain.cluster.execption.ClusterErrorCode.CLUSTER_NOT_FOUND;
 import static site.packit.packit.domain.travel.exception.TravelErrorCode.NOT_MEMBER_IN;
 
 @Service
+@Transactional
 public class ClusterService {
 
     private final MemberRepository memberRepository;
@@ -55,6 +61,30 @@ public class ClusterService {
         return savedCluster.getId();
     }
 
+    /**
+     * 할 일 그룹 순서 변경
+     */
+    public void updateClusterOrder(Long memberId, ClusterOrderReq clusterOrderReq){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Cluster clusterToUpdate = clusterRepository.findByIdAndMember(clusterOrderReq.clusterId(), member)
+                .orElseThrow(() -> new ResourceNotFoundException(CLUSTER_NOT_FOUND));
+
+        int newOrder = clusterOrderReq.newOrder();
+        int currentOrder = clusterToUpdate.getListOrder();
+        if (newOrder == currentOrder) {return;}
+
+        List<Cluster> clusters = clusterRepository.findByTravelAndMember(clusterToUpdate.getTravel(), member);
+        clusterToUpdate.setListOrder(newOrder);
+        if (newOrder < currentOrder) {
+            clusters.stream()
+                    .filter(c -> c != clusterToUpdate && c.getListOrder() >= newOrder && c.getListOrder() < currentOrder)
+                    .forEach(c -> c.setListOrder(c.getListOrder() + 1));
+        } else {
+            clusters.stream()
+                    .filter(c -> c != clusterToUpdate && c.getListOrder() <= newOrder && c.getListOrder() > currentOrder)
+                    .forEach(c -> c.setListOrder(c.getListOrder() - 1));
+        }
+    }
 
 
 
