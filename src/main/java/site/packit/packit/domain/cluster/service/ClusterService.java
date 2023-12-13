@@ -34,6 +34,9 @@ public class ClusterService {
         this.clusterRepository = clusterRepository;
     }
 
+    /**
+     * 할 일 그룹 생성
+     */
     public Long createNewCluster(Long memberId, CreateClusterReq createClusterReq){
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(createClusterReq.travelId());
