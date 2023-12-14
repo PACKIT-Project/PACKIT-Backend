@@ -2,6 +2,7 @@ package site.packit.packit.domain.cluster.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
@@ -28,7 +29,7 @@ public class Cluster extends BaseEntity {
     private String title;
 
     @Column(nullable = false)
-    private int listOrder;
+    private Integer listOrder;
 
     @OneToMany(mappedBy = "cluster", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<Category> categories = new ArrayList<>();

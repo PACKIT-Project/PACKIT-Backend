@@ -3,6 +3,7 @@ package site.packit.packit.domain.category.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.packit.packit.domain.cluster.entity.Cluster;
@@ -35,6 +36,17 @@ public class Category extends BaseEntity {
     @JoinColumn(name = "cluster_id")
     @JsonIgnore
     private Cluster cluster;
+
+    @Builder
+    public Category(
+            String title,
+            int listOrder,
+            Cluster cluster
+    ){
+        this.title = title;
+        this.listOrder = listOrder;
+        this.cluster = cluster;
+    }
 
     public void addItem(Item item) {
         this.items.add(item);
