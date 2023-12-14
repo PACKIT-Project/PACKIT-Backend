@@ -67,5 +67,29 @@ public class ItemService {
         itemRepository.delete(item);
     }
 
+    /**
+     * 할 일 아이템 체크
+     */
+    public void checkItem(Long memberId, Long itemId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Item item = itemRepository.findByIdOrThrow(itemId);
+        if (!item.getCategory().getCluster().getMember().equals(member)) {
+            throw new ResourceNotFoundException(ITEM_NOT_EDIT);
+        }
+        item.setChecked(true);
+    }
+
+    /**
+     * 할 일 아이템 체크 취소
+     */
+    public void uncheckItem(Long memberId, Long itemId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Item item = itemRepository.findByIdOrThrow(itemId);
+        if (!item.getCategory().getCluster().getMember().equals(member)) {
+            throw new ResourceNotFoundException(ITEM_NOT_EDIT);
+        }
+        item.setChecked(false);
+    }
+
 
 }

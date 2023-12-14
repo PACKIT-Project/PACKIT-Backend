@@ -49,6 +49,29 @@ public class ItemController {
         return ResponseUtil.successApiResponse(OK, "아이템 삭제에 성공했습니다.");
     }
 
+    /**
+     * 할 일 아이템 체크
+     */
+    @PatchMapping("/travels/items/{itemId}/check")
+    public ResponseEntity<SuccessApiResponse> checkItem(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long itemId
+    ){
+        itemService.checkItem(principal.getMemberId(), itemId);
+        return ResponseUtil.successApiResponse(OK, "아이템 체크에 성공했습니다.");
+    }
+
+    /**
+     * 할 일 아이템 체크 취소
+     */
+    @PatchMapping("/travels/items/{itemId}/uncheck")
+    public ResponseEntity<SuccessApiResponse> uncheckItem(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long itemId
+    ){
+        itemService.uncheckItem(principal.getMemberId(), itemId);
+        return ResponseUtil.successApiResponse(OK, "아이템 체크 취소에 성공했습니다.");
+    }
+
+
 
 
 }
