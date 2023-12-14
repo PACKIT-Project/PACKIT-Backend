@@ -8,7 +8,6 @@ import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.category.dto.CreateCategoryReq;
 import site.packit.packit.domain.category.dto.UpdateCategoryReq;
 import site.packit.packit.domain.category.service.CategoryService;
-import site.packit.packit.domain.cluster.dto.CreateClusterReq;
 import site.packit.packit.global.response.success.SingleSuccessApiResponse;
 import site.packit.packit.global.response.success.SuccessApiResponse;
 import site.packit.packit.global.response.util.ResponseUtil;
@@ -28,7 +27,7 @@ public class CategoryController {
     /**
      * 할 일 생성
      */
-    @PostMapping("/travels/clusters/categories")
+    @PostMapping("/travels/categories")
     public ResponseEntity<SingleSuccessApiResponse<Long>> createNewCategory(
             @AuthenticationPrincipal CustomUserPrincipal principal, @RequestBody CreateCategoryReq createCategoryReq
     ) {
@@ -39,7 +38,7 @@ public class CategoryController {
     /**
      * 할 일 수정
      */
-    @PatchMapping("/travels/clusters/categories")
+    @PatchMapping("/travels/categories")
     public ResponseEntity<SuccessApiResponse> updateCategory(
             @AuthenticationPrincipal CustomUserPrincipal principal, @RequestBody UpdateCategoryReq updateCategoryReq
     ) {
@@ -50,7 +49,7 @@ public class CategoryController {
     /**
      * 할 일 삭제
      */
-    @DeleteMapping("/travels/clusters/categories/{categoryId}")
+    @DeleteMapping("/travels/categories/{categoryId}")
     public ResponseEntity<SuccessApiResponse> deleteCategory(
             @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long categoryId
     ) {
