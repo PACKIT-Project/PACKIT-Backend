@@ -52,4 +52,8 @@ public class Category extends BaseEntity {
         this.items.add(item);
     }
 
+    public void updateCategoryTitle(String newTitle) {
+        this.title = newTitle;
+    }
+
 }

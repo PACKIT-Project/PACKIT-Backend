@@ -3,6 +3,7 @@ package site.packit.packit.domain.category.service;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import site.packit.packit.domain.category.dto.CreateCategoryReq;
+import site.packit.packit.domain.category.dto.UpdateCategoryReq;
 import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.category.repository.CategoryRepository;
 import site.packit.packit.domain.cluster.entity.Cluster;
@@ -14,6 +15,7 @@ import site.packit.packit.global.exception.ResourceNotFoundException;
 
 import java.util.Optional;
 
+import static site.packit.packit.domain.cluster.execption.ClusterErrorCode.CATEGORY_NOT_EDIT;
 import static site.packit.packit.domain.cluster.execption.ClusterErrorCode.CLUSTER_NOT_FOUND;
 
 @Service
@@ -53,6 +55,20 @@ public class CategoryService {
         cluster.addCategory(savedCategory);
 
         return savedCategory.getId();
+    }
+
+    /**
+     * 할 일 수정
+     */
+    public void updateCategoryTitle(Long memberId, UpdateCategoryReq updateCategoryReq){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Category category = categoryRepository.findByIdOrThrow(updateCategoryReq.categoryId());
+        if (!category.getCluster().getMember().equals(member)) {
+            throw new ResourceNotFoundException(CATEGORY_NOT_EDIT);
+        }
+
+        category.updateCategoryTitle(updateCategoryReq.title());
+        categoryRepository.save(category);
     }
 
 
