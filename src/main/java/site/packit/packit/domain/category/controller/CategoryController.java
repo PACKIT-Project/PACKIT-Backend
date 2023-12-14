@@ -47,4 +47,15 @@ public class CategoryController {
         return ResponseUtil.successApiResponse(OK, "할 일 제목 수정에 성공했습니다.");
     }
 
+    /**
+     * 할 일 삭제
+     */
+    @DeleteMapping("/travels/clusters/categories/{categoryId}")
+    public ResponseEntity<SuccessApiResponse> deleteCategory(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long categoryId
+    ) {
+        categoryService.deleteCategory(principal.getMemberId(), categoryId);
+        return ResponseUtil.successApiResponse(OK, "할 일이 삭제되었습니다.");
+    }
+
 }

@@ -8,11 +8,13 @@ import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.category.repository.CategoryRepository;
 import site.packit.packit.domain.cluster.entity.Cluster;
 import site.packit.packit.domain.cluster.repository.ClusterRepository;
+import site.packit.packit.domain.item.entity.Item;
 import site.packit.packit.domain.item.repository.ItemRepository;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.repository.MemberRepository;
 import site.packit.packit.global.exception.ResourceNotFoundException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static site.packit.packit.domain.cluster.execption.ClusterErrorCode.CATEGORY_NOT_EDIT;
@@ -69,6 +71,22 @@ public class CategoryService {
 
         category.updateCategoryTitle(updateCategoryReq.title());
         categoryRepository.save(category);
+    }
+
+    /**
+     * 할 일 삭제
+     */
+    public void deleteCategory(Long memberId, Long categoryId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Category category = categoryRepository.findByIdOrThrow(categoryId);
+        if (!category.getCluster().getMember().equals(member)) {
+            throw new ResourceNotFoundException(CATEGORY_NOT_EDIT);
+        }
+        List<Item> items = category.getItems();
+        if (items != null && !items.isEmpty()) {
+            itemRepository.deleteAll(items);
+        }
+        categoryRepository.delete(category);
     }
 
 
