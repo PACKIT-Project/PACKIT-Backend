@@ -29,7 +29,7 @@ public class ItemController {
     /**
      * 할 일 아이템 생성
      */
-    @PostMapping("/travels/clusters/categories/items")
+    @PostMapping("/travels/items")
     public ResponseEntity<SingleSuccessApiResponse<Long>> createNewItem(
             @AuthenticationPrincipal CustomUserPrincipal principal, @RequestBody CreateItemReq createItemReq
     ){
@@ -41,7 +41,7 @@ public class ItemController {
     /**
      * 할 일 아이템 삭제
      */
-    @DeleteMapping("/travels/clusters/categories/items/{itemId}")
+    @DeleteMapping("/travels/items/{itemId}")
     public ResponseEntity<SuccessApiResponse> deleteItem(
             @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long itemId
     ){

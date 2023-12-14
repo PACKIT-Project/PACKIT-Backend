@@ -27,7 +27,7 @@ public class CategoryController {
     /**
      * 할 일 생성
      */
-    @PostMapping("/travels/clusters/categories")
+    @PostMapping("/travels/categories")
     public ResponseEntity<SingleSuccessApiResponse<Long>> createNewCategory(
             @AuthenticationPrincipal CustomUserPrincipal principal, @RequestBody CreateCategoryReq createCategoryReq
     ) {
@@ -38,7 +38,7 @@ public class CategoryController {
     /**
      * 할 일 수정
      */
-    @PatchMapping("/travels/clusters/categories")
+    @PatchMapping("/travels/categories")
     public ResponseEntity<SuccessApiResponse> updateCategory(
             @AuthenticationPrincipal CustomUserPrincipal principal, @RequestBody UpdateCategoryReq updateCategoryReq
     ) {
@@ -49,7 +49,7 @@ public class CategoryController {
     /**
      * 할 일 삭제
      */
-    @DeleteMapping("/travels/clusters/categories/{categoryId}")
+    @DeleteMapping("/travels/categories/{categoryId}")
     public ResponseEntity<SuccessApiResponse> deleteCategory(
             @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long categoryId
     ) {
