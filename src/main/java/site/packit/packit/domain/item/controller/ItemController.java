@@ -8,6 +8,7 @@ import site.packit.packit.domain.category.dto.CreateCategoryReq;
 import site.packit.packit.domain.item.dto.CreateItemReq;
 import site.packit.packit.domain.item.service.ItemService;
 import site.packit.packit.global.response.success.SingleSuccessApiResponse;
+import site.packit.packit.global.response.success.SuccessApiResponse;
 import site.packit.packit.global.response.util.ResponseUtil;
 
 import java.util.List;
@@ -31,12 +32,22 @@ public class ItemController {
     @PostMapping("/travels/clusters/categories/items")
     public ResponseEntity<SingleSuccessApiResponse<Long>> createNewItem(
             @AuthenticationPrincipal CustomUserPrincipal principal, @RequestBody CreateItemReq createItemReq
-    ) {
+    ){
         return ResponseUtil.successApiResponse(OK, "새로운 할 일 아이템 생성에 성공했습니다.",
                 itemService.createNewItem(principal.getMemberId(), createItemReq));
     }
 
 
+    /**
+     * 할 일 아이템 삭제
+     */
+    @DeleteMapping("/travels/clusters/categories/items/{itemId}")
+    public ResponseEntity<SuccessApiResponse> deleteItem(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long itemId
+    ){
+        itemService.deleteItem(principal.getMemberId(), itemId);
+        return ResponseUtil.successApiResponse(OK, "아이템 삭제에 성공했습니다.");
+    }
 
 
 

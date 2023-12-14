@@ -54,5 +54,18 @@ public class ItemService {
         return savedItem.getId();
     }
 
+    /**
+     * 할 일 아이템 삭제
+     */
+    public void deleteItem(Long memberId, Long itemId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Item item = itemRepository.findByIdOrThrow(itemId);
+        if (!item.getCategory().getCluster().getMember().equals(member)) {
+            throw new ResourceNotFoundException(ITEM_NOT_EDIT);
+        }
+
+        itemRepository.delete(item);
+    }
+
 
 }
