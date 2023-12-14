@@ -8,7 +8,6 @@ import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.category.dto.CreateCategoryReq;
 import site.packit.packit.domain.category.dto.UpdateCategoryReq;
 import site.packit.packit.domain.category.service.CategoryService;
-import site.packit.packit.domain.cluster.dto.CreateClusterReq;
 import site.packit.packit.global.response.success.SingleSuccessApiResponse;
 import site.packit.packit.global.response.success.SuccessApiResponse;
 import site.packit.packit.global.response.util.ResponseUtil;
