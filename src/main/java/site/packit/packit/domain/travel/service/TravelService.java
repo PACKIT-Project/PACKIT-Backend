@@ -182,6 +182,10 @@ public class TravelService {
         Travel travel = travelRepository.findByIdOrThrow(travelId);
         validateTravelMemberExists(travel, member);
 
+        return getTravelDetailRes(member, travel);
+    }
+
+    private TravelDetailRes getTravelDetailRes(Member member, Travel travel) {
         String formattedStartDate = formatLocalDateTime(travel.getStartDate());
         String formattedEndDate = formatLocalDateTime(travel.getEndDate());
         List<TravelCluster> travelClusters = clusterRepository.findByTravelAndMember(travel, member).stream()
@@ -209,23 +213,7 @@ public class TravelService {
         validateTravelMemberExists(travel, me);
         validateTravelMemberExists(travel, member);
 
-        String formattedStartDate = formatLocalDateTime(travel.getStartDate());
-        String formattedEndDate = formatLocalDateTime(travel.getEndDate());
-        List<TravelCluster> travelClusters = clusterRepository.findByTravelAndMember(travel, member).stream()
-                .map(this::mapToTravelClusterList)
-                .sorted(Comparator.comparingInt(TravelCluster::order))
-                .collect(Collectors.toList());
-
-        return new TravelDetailRes(
-                travel.getId(),
-                travel.getTitle(),
-                calculateRemainingDays(travel.getEndDate()),
-                travel.getDestination().getCity(),
-                formattedStartDate,
-                formattedEndDate,
-                travelMemberRepository.countByTravel(travel),
-                travelClusters
-        );
+        return getTravelDetailRes(member, travel);
     }
 
 
@@ -281,7 +269,7 @@ public class TravelService {
                 .sorted(Comparator.comparingInt(TravelCategory::order))
                 .collect(Collectors.toList());
 
-        return new TravelCluster(
+        return TravelCluster.createWithItemCounts(
                 cluster.getId(),
                 cluster.getTitle(),
                 cluster.getListOrder(),
@@ -295,7 +283,7 @@ public class TravelService {
                 .sorted(Comparator.comparingInt(TravelItem::order))
                 .collect(Collectors.toList());
 
-        return new TravelCategory(
+        return TravelCategory.createWithItemCounts(
                 category.getId(),
                 category.getTitle(),
                 category.getListOrder(),
