@@ -228,6 +228,53 @@ public class TravelService {
         );
     }
 
+
+    /**
+     * 여행 삭제
+     */
+    public void deleteTravel(Long memberId, Long travelId) {
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+
+        if (!travel.getOwner().equals(member)) {
+            deleteRelatedDataForMember(member, travel);
+            return;
+        }
+
+        deleteClusters(travel);
+        travelMemberRepository.deleteByTravel(travel);
+        travelRepository.delete(travel);
+    }
+
+    private void deleteRelatedDataForMember(Member member, Travel travel) {
+        List<Cluster> clustersToDelete = clusterRepository.findByMemberAndTravel(member, travel);
+        for (Cluster cluster : clustersToDelete) {
+            deleteCategories(cluster);
+            clusterRepository.delete(cluster);
+        }
+    }
+
+    private void deleteClusters(Travel travel) {
+        List<Cluster> clusters = travel.getClusters();
+        for (Cluster cluster : clusters) {
+            deleteCategories(cluster);
+            clusterRepository.delete(cluster);
+        }
+    }
+
+    private void deleteCategories(Cluster cluster) {
+        List<Category> categories = cluster.getCategories();
+        for (Category category : categories) {
+            deleteItems(category);
+            categoryRepository.delete(category);
+        }
+    }
+
+    private void deleteItems(Category category) {
+        List<Item> items = category.getItems();
+        itemRepository.deleteAll(items);
+    }
+
     private TravelCluster mapToTravelClusterList(Cluster cluster) {
         List<TravelCategory> travelCategories = categoryRepository.findByCluster(cluster).stream()
                 .map(this::mapToTravelCategoryList)

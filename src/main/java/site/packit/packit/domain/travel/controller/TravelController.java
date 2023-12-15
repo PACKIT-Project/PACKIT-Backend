@@ -115,4 +115,15 @@ public class TravelController {
                 travelService.getToDoList(principal.getMemberId(), memberId, travelId));
     }
 
+    /**
+     * 여행 삭제
+     */
+    @DeleteMapping("/travels/{travelId}")
+    public ResponseEntity<SuccessApiResponse> deleteTravel(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long travelId
+    ) {
+        travelService.deleteTravel(principal.getMemberId(), travelId);
+        return ResponseUtil.successApiResponse(OK, "여행이 삭제되었습니다.");
+    }
+
 }
