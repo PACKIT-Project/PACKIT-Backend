@@ -28,5 +28,8 @@ public interface ClusterRepository extends JpaRepository<Cluster, Long> {
 
     Optional<Cluster> findByIdAndMember(Long clusterId, Member member);
 
+    List<Cluster> findByMemberAndTravel(Member member, Travel travel);
+
+
 }
 

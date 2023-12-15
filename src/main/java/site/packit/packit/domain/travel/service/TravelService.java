@@ -182,6 +182,10 @@ public class TravelService {
         Travel travel = travelRepository.findByIdOrThrow(travelId);
         validateTravelMemberExists(travel, member);
 
+        return getTravelDetailRes(member, travel);
+    }
+
+    private TravelDetailRes getTravelDetailRes(Member member, Travel travel) {
         String formattedStartDate = formatLocalDateTime(travel.getStartDate());
         String formattedEndDate = formatLocalDateTime(travel.getEndDate());
         List<TravelCluster> travelClusters = clusterRepository.findByTravelAndMember(travel, member).stream()
@@ -209,23 +213,54 @@ public class TravelService {
         validateTravelMemberExists(travel, me);
         validateTravelMemberExists(travel, member);
 
-        String formattedStartDate = formatLocalDateTime(travel.getStartDate());
-        String formattedEndDate = formatLocalDateTime(travel.getEndDate());
-        List<TravelCluster> travelClusters = clusterRepository.findByTravelAndMember(travel, member).stream()
-                .map(this::mapToTravelClusterList)
-                .sorted(Comparator.comparingInt(TravelCluster::order))
-                .collect(Collectors.toList());
+        return getTravelDetailRes(member, travel);
+    }
 
-        return new TravelDetailRes(
-                travel.getId(),
-                travel.getTitle(),
-                calculateRemainingDays(travel.getEndDate()),
-                travel.getDestination().getCity(),
-                formattedStartDate,
-                formattedEndDate,
-                travelMemberRepository.countByTravel(travel),
-                travelClusters
-        );
+
+    /**
+     * 여행 삭제
+     */
+    public void deleteTravel(Long memberId, Long travelId) {
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+
+        if (!travel.getOwner().equals(member)) {
+            deleteRelatedDataForMember(member, travel);
+            return;
+        }
+
+        deleteClusters(travel);
+        travelMemberRepository.deleteByTravel(travel);
+        travelRepository.delete(travel);
+    }
+
+    private void deleteRelatedDataForMember(Member member, Travel travel) {
+        List<Cluster> clustersToDelete = clusterRepository.findByMemberAndTravel(member, travel);
+        for (Cluster cluster : clustersToDelete) {
+            deleteCategories(cluster);
+            clusterRepository.delete(cluster);
+        }
+    }
+
+    private void deleteClusters(Travel travel) {
+        List<Cluster> clusters = travel.getClusters();
+        for (Cluster cluster : clusters) {
+            deleteCategories(cluster);
+            clusterRepository.delete(cluster);
+        }
+    }
+
+    private void deleteCategories(Cluster cluster) {
+        List<Category> categories = cluster.getCategories();
+        for (Category category : categories) {
+            deleteItems(category);
+            categoryRepository.delete(category);
+        }
+    }
+
+    private void deleteItems(Category category) {
+        List<Item> items = category.getItems();
+        itemRepository.deleteAll(items);
     }
 
     private TravelCluster mapToTravelClusterList(Cluster cluster) {
@@ -234,7 +269,7 @@ public class TravelService {
                 .sorted(Comparator.comparingInt(TravelCategory::order))
                 .collect(Collectors.toList());
 
-        return new TravelCluster(
+        return TravelCluster.createWithItemCounts(
                 cluster.getId(),
                 cluster.getTitle(),
                 cluster.getListOrder(),
@@ -248,7 +283,7 @@ public class TravelService {
                 .sorted(Comparator.comparingInt(TravelItem::order))
                 .collect(Collectors.toList());
 
-        return new TravelCategory(
+        return TravelCategory.createWithItemCounts(
                 category.getId(),
                 category.getTitle(),
                 category.getListOrder(),

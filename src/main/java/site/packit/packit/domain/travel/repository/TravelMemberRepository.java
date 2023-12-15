@@ -1,6 +1,7 @@
 package site.packit.packit.domain.travel.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.travel.entity.Travel;
 import site.packit.packit.domain.travel.entity.TravelMember;
@@ -15,4 +16,7 @@ public interface TravelMemberRepository extends JpaRepository<TravelMember, Long
     List<TravelMember> findByTravel(Travel travel);
 
     List<TravelMember> findByMemberId(Long memberId);
+
+    @Transactional
+    void deleteByTravel(Travel travel);
 }
