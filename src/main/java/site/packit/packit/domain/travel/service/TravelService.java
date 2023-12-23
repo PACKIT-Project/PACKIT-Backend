@@ -174,6 +174,30 @@ public class TravelService {
     }
 
     /**
+     * 여행 정보 조회
+     */
+    @Transactional(readOnly = true)
+    public TravelListRes getTravelInfo(Long memberId, Long travelId){
+        Member member = memberRepository.findByIdOrThrow(memberId);
+        Travel travel = travelRepository.findByIdOrThrow(travelId);
+        validateTravelMemberExists(travel, member);
+        String formattedStartDate = formatLocalDateTime(travel.getStartDate());
+        String formattedEndDate = formatLocalDateTime(travel.getEndDate());
+        long memberNum = travelMemberRepository.countByTravel(travel);
+        int remainingDays = calculateRemainingDays(travel.getStartDate());
+
+        return new TravelListRes(
+                travel.getId(),
+                travel.getTitle(),
+                travel.getDestination().getCity(),
+                formattedStartDate,
+                formattedEndDate,
+                String.valueOf(remainingDays),
+                memberNum
+                );
+    }
+
+    /**
      * 여행 리스트 상세 조회
      */
     @Transactional(readOnly = true)
