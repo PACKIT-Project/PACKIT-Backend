@@ -126,4 +126,16 @@ public class TravelController {
         return ResponseUtil.successApiResponse(OK, "여행이 삭제되었습니다.");
     }
 
+    /**
+     * 여행 정보 조회
+     */
+    @GetMapping(value = "/{travelId}")
+    public ResponseEntity<SingleSuccessApiResponse<TravelListRes>> getTravelInfo(
+            @AuthenticationPrincipal CustomUserPrincipal principal, @PathVariable Long travelId
+    ){
+        return ResponseUtil.successApiResponse(OK, "여행 정보 조회에 성공했습니다.",
+                travelService.getTravelInfo(principal.getMemberId(), travelId));
+    }
+
+
 }
