@@ -57,6 +57,9 @@ dependencies {
 	// Gson
 	implementation 'com.google.code.gson:gson:2.10.1'
 
+    // FCM
+    implementation 'com.google.firebase:firebase-admin:9.2.0'
+
 	// Spring Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
