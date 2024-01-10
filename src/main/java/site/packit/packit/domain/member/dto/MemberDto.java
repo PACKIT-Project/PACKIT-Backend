@@ -15,7 +15,7 @@ public record MemberDto(
         LoginProvider loginProvider,
         boolean enableNotification
 ) {
-    public static MemberDto of(Member member) {
+    public static MemberDto of(Member member, boolean enableNotification) {
         return new MemberDto(
                 member.getId(),
                 member.getPersonalId(),
@@ -24,7 +24,7 @@ public record MemberDto(
                 member.getAccountStatus(),
                 member.getAccountRole(),
                 member.getLoginProvider(),
-                member.isEnableNotification()
+                enableNotification
         );
     }
 }

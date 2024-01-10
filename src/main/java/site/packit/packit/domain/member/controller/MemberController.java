@@ -70,18 +70,4 @@ public class MemberController {
 
         return ResponseUtil.successApiResponse(OK, "사용자 닉네임 중복 검증 결과 입니다.", response);
     }
-
-    @PutMapping("/enable-notification")
-    public ResponseEntity<SuccessApiResponse> enableNotification(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        memberService.enableNotification(userPrincipal.getMemberId());
-
-        return ResponseUtil.successApiResponse(OK, "푸시 알림이 활성화 되었습니다.");
-    }
-
-    @PutMapping("/disable-notification")
-    public ResponseEntity<SuccessApiResponse> disableNotification(@AuthenticationPrincipal CustomUserPrincipal userPrincipal) {
-        memberService.disableNotification(userPrincipal.getMemberId());
-
-        return ResponseUtil.successApiResponse(OK, "푸시 알림이 비 활성화 되었습니다.");
-    }
 }

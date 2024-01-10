@@ -51,9 +51,6 @@ public class Member extends BaseTimeEntity {
     private LoginProvider loginProvider;
 
     @Column(nullable = false)
-    private boolean enableNotification;
-
-    @Column(nullable = false)
     private boolean checkTerms;
 
     private Member(
@@ -71,7 +68,6 @@ public class Member extends BaseTimeEntity {
         this.accountRole = accountRole;
         this.loginProvider = loginProvider;
         this.checkTerms = false;
-        this.enableNotification = false;
     }
 
     public static Member createTempUser(String personalId, LoginProvider loginProvider) {
@@ -88,16 +84,9 @@ public class Member extends BaseTimeEntity {
     public void register(
             String nickname,
             String profileImageUrl,
-            boolean enableNotification,
             boolean checkTerms
     ) {
         updateMemberProfile(nickname, profileImageUrl);
-
-        if ((enableNotification)) {
-            enableNotification();
-        } else {
-            disableNotification();
-        }
 
         this.checkTerms = checkTerms;
         this.accountStatus = ACTIVE;
@@ -106,14 +95,6 @@ public class Member extends BaseTimeEntity {
     public void updateMemberProfile(String nickname, String profileImageUrl) {
         this.nickname = nickname;
         this.profileImageUrl = profileImageUrl;
-    }
-
-    public void enableNotification() {
-        this.enableNotification = true;
-    }
-
-    public void disableNotification() {
-        this.enableNotification = false;
     }
 
     public Collection<GrantedAuthority> getGrantedAuthorities() {

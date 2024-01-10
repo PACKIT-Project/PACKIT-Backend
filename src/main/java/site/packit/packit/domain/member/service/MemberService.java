@@ -6,9 +6,9 @@ import site.packit.packit.domain.member.constant.LoginProvider;
 import site.packit.packit.domain.member.dto.MemberDto;
 import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.member.entity.Member;
-import site.packit.packit.domain.member.exception.MemberErrorCode;
 import site.packit.packit.domain.member.exception.MemberException;
 import site.packit.packit.domain.member.repository.MemberRepository;
+import site.packit.packit.domain.notification.service.PushNotificationService;
 
 import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
 import static site.packit.packit.domain.member.exception.MemberErrorCode.MEMBER_NOT_FOUND;
@@ -18,9 +18,11 @@ import static site.packit.packit.domain.member.exception.MemberErrorCode.TEMP_ME
 @Service
 public class MemberService {
 
+    private final PushNotificationService pushNotificationService;
     private final MemberRepository memberRepository;
 
-    public MemberService(MemberRepository memberRepository) {
+    public MemberService(PushNotificationService pushNotificationService, MemberRepository memberRepository) {
+        this.pushNotificationService = pushNotificationService;
         this.memberRepository = memberRepository;
     }
 
@@ -36,7 +38,7 @@ public class MemberService {
 
     public Long register(Long memberId, UpdateMemberProfileRequest request) {
         Member tempMember = getTempMember(memberId);
-        tempMember.register(request.nickname(), request.profileImageUrl(), request.enableNotification(), request.checkTerms());
+        tempMember.register(request.nickname(), request.profileImageUrl(), request.checkTerms());
 
         return tempMember.getId();
     }
@@ -56,8 +58,9 @@ public class MemberService {
     public MemberDto getMember(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
+        boolean isPushNotificationSubscriber = pushNotificationService.isPushNotificationSubscriber(member);
 
-        return MemberDto.of(member);
+        return MemberDto.of(member, isPushNotificationSubscriber);
     }
 
     public void updateMemberProfile(Long memberId, UpdateMemberProfileRequest request) {
@@ -75,17 +78,5 @@ public class MemberService {
     @Transactional(readOnly = true)
     public boolean checkMemberNicknameDuplicated(String memberNickname) {
         return memberRepository.existsByNickname(memberNickname);
-    }
-
-    public void enableNotification(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
-        member.enableNotification();
-    }
-
-    public void disableNotification(Long memberId) {
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
-        member.disableNotification();
     }
 }
