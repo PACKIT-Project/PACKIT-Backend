@@ -181,4 +181,7 @@ src/main/resources/application-dev.yml
 # prod
 src/main/resources/application-prod.yml
 
+### FCM Config
+src/main/resources/firebase/serviceAccountKey.json
+
 # End of https://www.toptal.com/developers/gitignore/api/java,gradle,intellij+all,macos
