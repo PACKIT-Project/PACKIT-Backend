@@ -8,6 +8,7 @@ import site.packit.packit.domain.member.dto.request.UpdateMemberProfileRequest;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.exception.MemberException;
 import site.packit.packit.domain.member.repository.MemberRepository;
+import site.packit.packit.domain.notification.dto.NotificationConfigStatus;
 import site.packit.packit.domain.notification.service.PushNotificationService;
 
 import static site.packit.packit.domain.member.constant.AccountStatus.WAITING_TO_JOIN;
@@ -58,9 +59,9 @@ public class MemberService {
     public MemberDto getMember(Long memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new MemberException(MEMBER_NOT_FOUND));
-        boolean isPushNotificationSubscriber = pushNotificationService.isPushNotificationSubscriber(member);
+        NotificationConfigStatus notificationConfigStatus = pushNotificationService.getAllNotificationConfigStatus(member);
 
-        return MemberDto.of(member, isPushNotificationSubscriber);
+        return MemberDto.of(member, notificationConfigStatus);
     }
 
     public void updateMemberProfile(Long memberId, UpdateMemberProfileRequest request) {

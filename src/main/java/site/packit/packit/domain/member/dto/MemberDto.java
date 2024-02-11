@@ -4,6 +4,7 @@ import site.packit.packit.domain.member.constant.AccountRole;
 import site.packit.packit.domain.member.constant.AccountStatus;
 import site.packit.packit.domain.member.constant.LoginProvider;
 import site.packit.packit.domain.member.entity.Member;
+import site.packit.packit.domain.notification.dto.NotificationConfigStatus;
 
 public record MemberDto(
         Long id,
@@ -13,9 +14,9 @@ public record MemberDto(
         AccountStatus accountStatus,
         AccountRole accountRole,
         LoginProvider loginProvider,
-        boolean enableNotification
+        NotificationConfigStatus notificationConfigStatus
 ) {
-    public static MemberDto of(Member member, boolean enableNotification) {
+    public static MemberDto of(Member member, NotificationConfigStatus notificationConfig) {
         return new MemberDto(
                 member.getId(),
                 member.getPersonalId(),
@@ -24,7 +25,7 @@ public record MemberDto(
                 member.getAccountStatus(),
                 member.getAccountRole(),
                 member.getLoginProvider(),
-                enableNotification
+                notificationConfig
         );
     }
 }
