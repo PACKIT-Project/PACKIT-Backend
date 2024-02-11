@@ -6,14 +6,15 @@ import site.packit.packit.domain.category.entity.Category;
 import site.packit.packit.domain.category.repository.CategoryRepository;
 import site.packit.packit.domain.cluster.entity.Cluster;
 import site.packit.packit.domain.cluster.repository.ClusterRepository;
+import site.packit.packit.domain.destination.entity.Destination;
+import site.packit.packit.domain.destination.repository.DestinationRepository;
 import site.packit.packit.domain.item.entity.Item;
 import site.packit.packit.domain.item.repository.ItemRepository;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.repository.MemberRepository;
+import site.packit.packit.domain.notification.service.TravelNotificationService;
 import site.packit.packit.domain.travel.dto.*;
-import site.packit.packit.domain.destination.entity.Destination;
 import site.packit.packit.domain.travel.entity.Travel;
-import site.packit.packit.domain.destination.repository.DestinationRepository;
 import site.packit.packit.domain.travel.entity.TravelMember;
 import site.packit.packit.domain.travel.repository.TravelMemberRepository;
 import site.packit.packit.domain.travel.repository.TravelRepository;
@@ -30,7 +31,6 @@ import java.util.stream.Collectors;
 
 import static site.packit.packit.domain.travel.exception.TravelErrorCode.*;
 
-
 @Service
 @Transactional
 public class TravelService {
@@ -41,10 +41,10 @@ public class TravelService {
     private final ItemRepository itemRepository;
     private final CategoryRepository categoryRepository;
     private final ClusterRepository clusterRepository;
-
     private final DestinationRepository destinationRepository;
+    private final TravelNotificationService travelNotificationService;
 
-    public TravelService(MemberRepository memberRepository, TravelMemberRepository travelMemberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CategoryRepository categoryRepository, ClusterRepository clusterRepository, DestinationRepository destinationRepository) {
+    public TravelService(MemberRepository memberRepository, TravelMemberRepository travelMemberRepository, TravelRepository travelRepository, ItemRepository itemRepository, CategoryRepository categoryRepository, ClusterRepository clusterRepository, DestinationRepository destinationRepository, TravelNotificationService travelNotificationService) {
         this.memberRepository = memberRepository;
         this.travelMemberRepository = travelMemberRepository;
         this.travelRepository = travelRepository;
@@ -52,8 +52,8 @@ public class TravelService {
         this.categoryRepository = categoryRepository;
         this.clusterRepository = clusterRepository;
         this.destinationRepository = destinationRepository;
+        this.travelNotificationService = travelNotificationService;
     }
-
 
     /**
      * 새로운 여행 생성
@@ -87,29 +87,35 @@ public class TravelService {
      * 현재 동행자 수 & 초대코드 확인
      */
     @Transactional(readOnly = true)
-    public TravelInviteRes getInvitationCode(Long memberId, Long travelId){
+    public TravelInviteRes getInvitationCode(Long memberId, Long travelId) {
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
         validateTravelMemberExists(travel, member);
 
         String invitationCode = travel.getInvitationCode();
         long peopleNum = travelMemberRepository.countByTravel(travel);
-        if(peopleNum>=8){ invitationCode = "최대 인원에 도달하였습니다."; }
+        if (peopleNum >= 8) {
+            invitationCode = "최대 인원에 도달하였습니다.";
+        }
         return new TravelInviteRes(peopleNum, invitationCode);
     }
 
     /**
      * 동행자 추가 (초대코드 입력)
      */
-    public Long invitationTravel(Long memberId, String invitationCode){
+    public Long invitationTravel(Long memberId, String invitationCode) {
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByInvitationCode(invitationCode)
                 .orElseThrow(() -> new ResourceNotFoundException(INVITATION_NOT_FOUND));
         validateTravelMemberNotExists(travel, member);
-        if(travelMemberRepository.countByTravel(travel) >= 8){
+        if (travelMemberRepository.countByTravel(travel) >= 8) {
             throw new MaxParticipantsExceededException(MAX_PARTICIPANTS_EXCEEDED);
         }
         addMemberToTravel(travel, member);
+
+        // 현재 여행에 등록되어 있는 사용자들에게 푸시 알림 전송
+        travelNotificationService.sendTravelMemberInviteNotification(travel, member);
+
         return travel.getId();
     }
 
@@ -117,7 +123,7 @@ public class TravelService {
      * 동행자 목록 조회
      */
     @Transactional(readOnly = true)
-    public List<TravelMemberRes> getTravelMemberList(Long memberId, Long travelId){
+    public List<TravelMemberRes> getTravelMemberList(Long memberId, Long travelId) {
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
         List<TravelMember> travelMembers = travelMemberRepository.findByTravel(travel);
@@ -177,7 +183,7 @@ public class TravelService {
      * 여행 정보 조회
      */
     @Transactional(readOnly = true)
-    public TravelListRes getTravelInfo(Long memberId, Long travelId){
+    public TravelListRes getTravelInfo(Long memberId, Long travelId) {
         Member member = memberRepository.findByIdOrThrow(memberId);
         Travel travel = travelRepository.findByIdOrThrow(travelId);
         validateTravelMemberExists(travel, member);
@@ -194,7 +200,7 @@ public class TravelService {
                 formattedEndDate,
                 String.valueOf(remainingDays),
                 memberNum
-                );
+        );
     }
 
     /**
