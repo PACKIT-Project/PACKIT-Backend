@@ -60,6 +60,8 @@ dependencies {
     // FCM
     implementation 'com.google.firebase:firebase-admin:9.2.0'
 
+    // okhttp
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.12.0'
 	// Spring Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
