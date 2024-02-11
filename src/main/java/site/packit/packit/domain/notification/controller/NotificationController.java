@@ -2,20 +2,23 @@ package site.packit.packit.domain.notification.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import site.packit.packit.domain.auth.principal.CustomUserPrincipal;
 import site.packit.packit.domain.member.entity.Member;
 import site.packit.packit.domain.member.service.MemberService;
+import site.packit.packit.domain.notification.dto.NotificationHistoryDto;
+import site.packit.packit.domain.notification.dto.SaveFcmTokenRequest;
 import site.packit.packit.domain.notification.service.PushNotificationService;
+import site.packit.packit.global.response.success.MultipleSuccessApiResponse;
 import site.packit.packit.global.response.success.SuccessApiResponse;
 import site.packit.packit.global.response.util.ResponseUtil;
 
-import static org.springframework.http.HttpStatus.OK;
+import java.util.List;
 
-@RequestMapping("/api/notification/subscriber")
+import static org.springframework.http.HttpStatus.OK;
+import static site.packit.packit.domain.notification.constant.NotificationType.ACTIVE;
+import static site.packit.packit.domain.notification.constant.NotificationType.TRAVEL_REMIND;
+
 @RestController
 public class NotificationController {
 
@@ -27,19 +30,54 @@ public class NotificationController {
         this.pushNotificationService = pushNotificationService;
     }
 
-    @PostMapping
-    public ResponseEntity<SuccessApiResponse> addPushNotificationSubscriber(@AuthenticationPrincipal CustomUserPrincipal principal) {
+    @PostMapping("/api/active-notifications/subscriber")
+    public ResponseEntity<SuccessApiResponse> addActivePushNotificationSubscriber(@AuthenticationPrincipal CustomUserPrincipal principal) {
         Member member = memberService.getMember(principal.getName());
-        pushNotificationService.createSubscriber(member);
+        pushNotificationService.createSubscriber(ACTIVE, member);
 
-        return ResponseUtil.successApiResponse(OK, "성공적으로 알림 수신이 설정되었습니다.");
+        return ResponseUtil.successApiResponse(OK, "성공적으로 활동 알림 수신이 설정되었습니다.");
     }
 
-    @DeleteMapping
-    public ResponseEntity<SuccessApiResponse> deletePushNotificationSubscriber(@AuthenticationPrincipal CustomUserPrincipal principal) {
+    @DeleteMapping("/api/active-notifications/subscriber")
+    public ResponseEntity<SuccessApiResponse> deleteActivePushNotificationSubscriber(@AuthenticationPrincipal CustomUserPrincipal principal) {
         Member member = memberService.getMember(principal.getName());
-        pushNotificationService.deleteSubscriber(member);
+        pushNotificationService.deleteSubscriber(ACTIVE, member);
 
-        return ResponseUtil.successApiResponse(OK, "성공적으로 알림 수신이 해제되었습니다.");
+        return ResponseUtil.successApiResponse(OK, "성공적으로 활동 알림 수신이 해제되었습니다.");
+    }
+
+    @PostMapping("/api/travel-remind-notifications/subscriber")
+    public ResponseEntity<SuccessApiResponse> addTravelRemindPushNotificationSubscriber(@AuthenticationPrincipal CustomUserPrincipal principal) {
+        Member member = memberService.getMember(principal.getName());
+        pushNotificationService.createSubscriber(TRAVEL_REMIND, member);
+
+        return ResponseUtil.successApiResponse(OK, "성공적으로 여행 리마이드 알림 수신이 설정되었습니다.");
+    }
+
+    @DeleteMapping("/api/travel-remind-notifications/subscriber")
+    public ResponseEntity<SuccessApiResponse> deleteTravelRemindNotificationPushNotificationSubscriber(@AuthenticationPrincipal CustomUserPrincipal principal) {
+        Member member = memberService.getMember(principal.getName());
+        pushNotificationService.deleteSubscriber(TRAVEL_REMIND, member);
+
+        return ResponseUtil.successApiResponse(OK, "성공적으로 여행 리마이드 알림 수신이 해제되었습니다.");
+    }
+
+    @PostMapping("/api/fcm-token")
+    public ResponseEntity<SuccessApiResponse> saveFcmToken(
+            @AuthenticationPrincipal CustomUserPrincipal principal,
+            @RequestBody SaveFcmTokenRequest request
+    ) {
+        Member member = memberService.getMember(principal.getName());
+        pushNotificationService.saveFcmToken(member, request.token());
+
+        return ResponseUtil.successApiResponse(OK, "성공적으로 FCM 토큰이 저장되었습니다.");
+    }
+
+    @GetMapping("/api/notifications/histories")
+    public ResponseEntity<MultipleSuccessApiResponse<NotificationHistoryDto>> getNotificationHistories(@AuthenticationPrincipal CustomUserPrincipal principal) {
+        Member member = memberService.getMember(principal.getName());
+        List<NotificationHistoryDto> notificationHistories = pushNotificationService.getNotificationHistories(member);
+
+        return ResponseUtil.successApiResponse(OK, "성공적으로 알림 기록이 조회되었습니다.", notificationHistories);
     }
 }

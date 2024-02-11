@@ -5,27 +5,29 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import site.packit.packit.domain.member.entity.Member;
-import site.packit.packit.domain.notification.constant.NotificationType;
 import site.packit.packit.global.audit.BaseTimeEntity;
 
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Entity
-public class PushNotificationSubscriber extends BaseTimeEntity {
+public class FcmToken extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 50, nullable = false)
-    private NotificationType notificationType;
+    @Column(nullable = false, length = 1000)
+    private String value;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     private Member member;
 
-    public PushNotificationSubscriber(NotificationType notificationType, Member member) {
-        this.notificationType = notificationType;
+    public FcmToken(String value, Member member) {
+        this.value = value;
         this.member = member;
+    }
+
+    public void updateValue(String value) {
+        this.value = value;
     }
 }
