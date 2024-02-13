@@ -30,7 +30,7 @@ public class Travel
     @Column(length = 100, nullable = false)
     private String title;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.REMOVE)
     @JoinColumn(name = "destination_id", nullable = false)
     private Destination destination;
 
